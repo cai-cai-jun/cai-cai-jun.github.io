@@ -64,6 +64,62 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-dvwa靶场环境搭建" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2022/08/07/dvwa%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" class="article-date">
+  <time datetime="2022-08-07T06:11:46.000Z" itemprop="datePublished">2022-08-07</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2022/08/07/dvwa%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">dvwa靶场环境搭建</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <ul>
+<li>问题：dvwa将”将php.ini里面的allow_url_include=off 改成allow_url_include=on”后并没有出现教程里说的”数据库连接错位”的问题</li>
+</ul>
+<p>笑瘫了，在页面的最下面，我是傻逼，我靠，欸，麻了麻了。</p>
+<ul>
+<li><p>又及 虽然在PHP中显示的账号：root和密码：root，但是登录login的账号和密码还是admin和password<br>解释：root 那个账号和密码是数据库的，admin和password是用户(?)的所以不能通用</p>
+</li>
+<li><p>问题：靶场搭建完后在使用burpsuite抓包的过程中，访问自己搭建的网站，burpsuite上没有反应，但是但是，教程上直接可以抓到</p>
+</li>
+</ul>
+<p>emm使用ip：127.0.0.1不能成功抓包，但是如果使用真实ip可以成功抓包，算是绕过了这个问题</p>
+<ul>
+<li>问题：安装新的java版本后在cmd中执行”java -version”无结果</li>
+</ul>
+<p>个人想法是已经将java的路径配置给了新装的java(为了区分我将新装的java命名为”java11.exe”)所以执行该命令时在这条路径下找不到java的软件所以没有反馈。</p>
+<ul>
+<li>问题：火狐，谷歌等浏览器按照教程设置证书后显示”未连接：有潜在的安全问题”</li>
+</ul>
+<p>解决方法：将java的版本换为11以及将burpsuite换成新的版本(就是紫的那个)</p>
+<p>至此，抓包完美成功。好耶！！！</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/08/07/dvwa%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" data-id="cl6m7ol4r0000x0utatb97f9p" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-java的安装与配置" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2022/08/05/java%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/" class="article-date">
@@ -92,7 +148,7 @@
 <li>安装的java版本<br>  嗯。。。第一次下载来的版本是18.0.2(?好像)，之后在burpsuite的安装中报错了(说是没有在这个版本上运行过，总之横竖打不开)。之后把版本换成了18.0.241(大概)非常顺利的通过了呢。阿巴阿巴。</li>
 </ul>
 <ul>
-<li><p>java的路径配置<br>  路径配置的话网上已经有足够多的教程了这里为了方便自己回顾放几张图上来吧(毕竟这台垃圾电脑说报废就报废(当然不是因为自己黄油装的太多把自己电脑变成公交车了，当然不是哦！当然不是哦！！！))<br>  <a href="c:/Users/lenovo/Pictures/Screenshots/QQ%E5%9B%BE%E7%89%8720220805134605.png"></a><br>  <a href="c:/Users/lenovo/Pictures/Screenshots/QQ%E5%9B%BE%E7%89%8720220805134923.png"></a><br>  <a href="c:/Users/lenovo/Pictures/Screenshots/QQ%E5%9B%BE%E7%89%8720220805134840.png"></a><br>  <a href="c:/Users/lenovo/Pictures/Screenshots/QQ%E5%9B%BE%E7%89%8720220805134657.png"></a><br>  <a href="c:/Users/lenovo/Pictures/Screenshots/QQ%E5%9B%BE%E7%89%8720220805134846.png"></a></p>
+<li><p>java的路径配置<br>  路径配置的话网上已经有足够多的教程了这里为了方便自己回顾放几张图上来吧(毕竟这台垃圾电脑说报废就报废(当然不是因为自己黄油装的太多把自己电脑变成公交车了，当然不是哦！当然不是哦！！！)) 批注：java_HOME那一步真的很重要！！！当之后要下载别的版本的java时，只需要修改java_home的路径就行了，可以省去很多麻烦!<br>  <a href="c:/Users/lenovo/Pictures/Screenshots/QQ%E5%9B%BE%E7%89%8720220805134605.png"></a><br>  <a href="c:/Users/lenovo/Pictures/Screenshots/QQ%E5%9B%BE%E7%89%8720220805134923.png"></a><br>  <a href="c:/Users/lenovo/Pictures/Screenshots/QQ%E5%9B%BE%E7%89%8720220805134840.png"></a><br>  <a href="c:/Users/lenovo/Pictures/Screenshots/QQ%E5%9B%BE%E7%89%8720220805134657.png"></a><br>  <a href="c:/Users/lenovo/Pictures/Screenshots/QQ%E5%9B%BE%E7%89%8720220805134846.png"></a></p>
 </li>
 <li><p>番外篇(hexo的重装)和电脑白痴对路径配置的新领悟：<br>java-home 配置的时候看到了这样一个东西，那时候觉得很不解(看不懂啊！阿巴阿巴)，其实这个东西就相当于一个缩写，等价于 </p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">%java-home% = E:\ ...\ ...\ ...\(绝对地址)</span><br></pre></td></tr></table></figure>
@@ -180,6 +236,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2022/08/07/dvwa%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">dvwa靶场环境搭建</a>
+          </li>
         
           <li>
             <a href="/2022/08/05/java%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/">java的安装与路径配置</a>
