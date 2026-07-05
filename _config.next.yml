@@ -1,0 +1,171 @@
+# NexT Theme Configuration
+# Docs: https://theme-next.js.org/docs/
+
+# ---------------------------------------------------------------
+# Scheme Settings
+# ---------------------------------------------------------------
+# Gemini: Modern, card-based layout (recommended)
+scheme: Gemini
+
+# Dark Mode
+darkmode: true
+
+# ---------------------------------------------------------------
+# Menu Settings
+# ---------------------------------------------------------------
+menu:
+  home: / || fa fa-home
+  archives: /archives/ || fa fa-archive
+  categories: /categories/ || fa fa-th
+  tags: /tags/ || fa fa-tags
+  about: /about/ || fa fa-user
+
+menu_settings:
+  icons: true
+  badges: true
+
+# ---------------------------------------------------------------
+# Sidebar Settings
+# ---------------------------------------------------------------
+sidebar:
+  position: left
+  display: post
+  padding: 18
+  offset: 12
+
+avatar:
+  url: /images/avatar.gif
+  rounded: true
+
+# Social Links
+social:
+  GitHub: https://github.com/cai-cai-jun || fab fa-github
+  E-Mail: mailto:2668359661@qq.com || fa fa-envelope
+
+social_icons:
+  enable: true
+  icons_only: false
+  transition: true
+
+# ---------------------------------------------------------------
+# Post Settings
+# ---------------------------------------------------------------
+# Automatically scroll to the top when reading
+back2top:
+  enable: true
+  sidebar: false
+  scrollpercent: true
+
+# Reading progress bar
+reading_progress:
+  enable: true
+  position: top
+  color: "#37c6c0"
+  height: 3px
+
+# Post word count (requires hexo-wordcount plugin)
+# post_meta:
+#   item_text: true
+
+# ---------------------------------------------------------------
+# Code Blocks
+# ---------------------------------------------------------------
+codeblock:
+  # Code Highlight theme
+  # See: https://theme-next.js.org/docs/theme-settings/code-blocks
+  highlight:
+    theme: night owl
+    prism:
+      light: prism
+      dark: prism-tomorrow
+  copy_button:
+    enable: true
+    style: flat
+
+# ---------------------------------------------------------------
+# Font Settings
+# ---------------------------------------------------------------
+font:
+  enable: true
+  host: https://fonts.googleapis.com
+  global:
+    external: true
+    family: Noto Sans SC
+    size:
+  title:
+    external: true
+    family:
+    size:
+  headings:
+    external: true
+    family:
+    size:
+  posts:
+    external: true
+    family:
+    size:
+  codes:
+    external: true
+    family: Fira Code
+    size:
+
+# ---------------------------------------------------------------
+# SEO Settings
+# ---------------------------------------------------------------
+seo:
+  bing_webmaster:
+  google_site_verification:
+  yandex_site_verification:
+  baidu_site_verification:
+
+# ---------------------------------------------------------------
+# Third Party Services
+# ---------------------------------------------------------------
+# Math rendering
+math:
+  mathjax:
+    enable: false
+    per_page: false
+
+# Mermaid diagrams
+mermaid:
+  enable: false
+
+# ---------------------------------------------------------------
+# Animation Settings
+# ---------------------------------------------------------------
+motion:
+  enable: true
+  async: true
+  transition:
+    menu_item: fadeIn
+    post_list: fadeInUp
+    post_block: fadeIn
+    sidebar: fadeIn
+    header: fadeIn
+
+# ---------------------------------------------------------------
+# Footer Settings
+# ---------------------------------------------------------------
+footer:
+  since: 2026
+  icon:
+    name: fa fa-heart
+    animated: true
+    color: "#ff0000"
+  copyright:
+  powered: true
+  beian:
+    enable: false
+    icp:
+    gongan_id:
+    gongan_num:
+
+# ---------------------------------------------------------------
+# Search
+# ---------------------------------------------------------------
+local_search:
+  enable: true
+  trigger: auto
+  top_n_per_article: 1
+  preload: true
