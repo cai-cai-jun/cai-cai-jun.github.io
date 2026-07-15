@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="John Doe">
+
+
+
+
+
+<title>菜菜のblog</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const pagebody = document.getElementsByTagName('body')[0]
+
+            function setTheme(status) {
+
+                if (status === 'dark') {
+                    window.sessionStorage.theme = 'dark'
+                    pagebody.classList.add('dark-theme');
+
+                } else if (status === 'light') {
+                    window.sessionStorage.theme = 'light'
+                    pagebody.classList.remove('dark-theme');
+                }
+            };
+
+            setTheme(window.sessionStorage.theme)
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">saisi&#39;s Blog</a></div>
+            <div class="menu navbar-right">
+                
+                <a class="menu-item" href="/archives">Posts</a>
+                
+                <a class="menu-item" href="/category">Categories</a>
+                
+                <a class="menu-item" href="/tag">Tags</a>
+                
+                <a class="menu-item" href="/about">About</a>
+                
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">saisi&#39;s Blog</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">
+                    <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M4.5 17.27q-.213 0-.356-.145T4 16.768t.144-.356t.356-.143h15q.213 0 .356.144q.144.144.144.357t-.144.356t-.356.143zm0-4.77q-.213 0-.356-.144T4 11.999t.144-.356t.356-.143h15q.213 0 .356.144t.144.357t-.144.356t-.356.143zm0-4.77q-.213 0-.356-.143Q4 7.443 4 7.23t.144-.356t.356-.143h15q.213 0 .356.144T20 7.23t-.144.356t-.356.144z"/></svg>
+                    <svg class="close-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><!-- Icon from Material Symbols Light by Google - https://github.com/google/material-design-icons/blob/master/LICENSE --><path fill="currentColor" d="m12 12.708l-5.246 5.246q-.14.14-.344.15t-.364-.15t-.16-.354t.16-.354L11.292 12L6.046 6.754q-.14-.14-.15-.344t.15-.364t.354-.16t.354.16L12 11.292l5.246-5.246q.14-.14.345-.15q.203-.01.363.15t.16.354t-.16.354L12.708 12l5.246 5.246q.14.14.15.345q.01.203-.15.363t-.354.16t-.354-.16z"/></svg>
+                </div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                <a class="menu-item" href="/archives">Posts</a>
+                
+                <a class="menu-item" href="/category">Categories</a>
+                
+                <a class="menu-item" href="/tag">Tags</a>
+                
+                <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if (toggleMenu.classList.contains("active")) {
+            toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        } else {
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title"></h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">John Doe</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">July 15, 2026&nbsp;&nbsp;15:33:45</a>
+                        </span>
+                    
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h1 id="古典密码学从入门到入土"><a href="#古典密码学从入门到入土" class="headerlink" title="古典密码学从入门到入土"></a>古典密码学从入门到入土</h1><p>依旧从零开始的密码学之旅，会实时分享自己学到的东西，将自己所有的白痴问题总结得到的面向小白的教程</p>
+<h2 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h2><p>想象一个场景，你是一位国家的君主，现在你的国家与你的邻国中间发生了一场激烈的战争，作为君主，你需要对前线发号施令来指挥战斗，你把给前线的指令通过明文的方式交由你的传令员，但是这时候你会发现，这施令不只有你看得懂，只要拿到这张纸的人都能看懂，要是施令被半路拦截又或者是内部出现了内奸这时候对方就能知道你的作战计划，这时候，我们需要一个方法来达到<br>1.只有内部人员能看懂指令</p>
+<p>2.别的人员就算拿到指令也没办法看懂</p>
+<h2 id="单表替换"><a href="#单表替换" class="headerlink" title="单表替换"></a>单表替换</h2><h3 id="凯撒密码"><a href="#凯撒密码" class="headerlink" title="凯撒密码"></a>凯撒密码</h3><p>凯撒密码的核心规则就是通过：<strong>将字母按照固定偏移量（密钥）整体平移，实现明文隐藏。</strong></p>
+<p>设偏移量为 k（密钥，整数），标准 26 个大写英文字母 <code>A-Z</code> 对应序号：</p>
+<p>(A&#x3D;0,\ B&#x3D;1,\ C&#x3D;2,\ …,\ Z&#x3D;25)</p>
+<p>加密公式（明文→密文）</p>
+<p>(C &#x3D; (P + k)  % 26)</p>
+<ul>
+<li>P：明文字母对应数字</li>
+<li>C：密文字母对应数字</li>
+<li>k：移位密钥（1~25，(k&#x3D;0) 无加密）</li>
+<li>(% 26)：模 26 运算，防止超出 Z（25），超出则从头循环</li>
+</ul>
+<p>比如当k&#x3D;2时，a-&gt;c  e-&gt;g</p>
+<p>hello-&gt;jgnnq</p>
+<p>这时候我们只需要知道k值，我们就能够知道得知原来的密文</p>
+<h3 id="ROT系列密码"><a href="#ROT系列密码" class="headerlink" title="ROT系列密码"></a>ROT系列密码</h3><p>rot系列密码本质就是凯撒密码，比如ROT13实际上就是k&#x3D;13的凯撒密码</p>
+<p>ROT5：将移位规则应用于0-9数字字符，偏移量为5，实现数字的简单混淆加密</p>
+<p>ROT18：组合ROT5与ROT13，同时处理字母和数字字符，覆盖更广泛的字符集</p>
+<p>ROT47：扩展至ASCII 33-126全部94个可打印字符，偏移量47，可加密标点符号和特殊字符</p>
+<h3 id="仿射密码"><a href="#仿射密码" class="headerlink" title="仿射密码"></a>仿射密码</h3><p>仿射密码将凯撒移位升级为线性变换C&#x3D;(aP+b) mod 26，引入乘法系数a和加法偏移b两个密钥参数。</p>
+<p>以a&#x3D;5、b&#x3D;8加密明文’HELLO’为例，逐字代入公式C&#x3D;(5P+8) mod 26计算：H(7)→R(17)、E(4)→C(2)、L(11)→L(11)、L(11)→L(11)、O(14)→A(0)。两个L均加密为L，展示了仿射变换中可能出现的不动点现象，同时验证了单表替换的一一映射特性。</p>
+<h2 id="多表替换"><a href="#多表替换" class="headerlink" title="多表替换"></a>多表替换</h2><h3 id="维吉尼亚密码"><a href="#维吉尼亚密码" class="headerlink" title="维吉尼亚密码"></a>维吉尼亚密码</h3><p>维吉尼亚密码的数学本质是模26加法运算：加密为C&#x3D;(P+K) mod 26，解密为P&#x3D;(C-K) mod 26。密钥字母映射为0-25的移位值并循环使用，将简单的凯撒移位扩展为位置相关的动态移位，实现了多表替换的核心功能。</p>
+<p>举个例子：明文为：HELLO WORLD 密钥为：ADMIN</p>
+<table>
+<thead>
+<tr>
+<th>位置</th>
+<th>明文字母</th>
+<th>密钥字母</th>
+<th>明文数值</th>
+<th>密钥数值</th>
+<th>计算过程 (明文+密钥) mod 26</th>
+<th>结果数值</th>
+<th>密文字母</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>H</td>
+<td>A</td>
+<td>7</td>
+<td>0</td>
+<td>(7 + 0) mod 26 &#x3D; 7</td>
+<td>7</td>
+<td>H</td>
+</tr>
+<tr>
+<td>2</td>
+<td>E</td>
+<td>D</td>
+<td>4</td>
+<td>3</td>
+<td>(4 + 3) mod 26 &#x3D; 7</td>
+<td>7</td>
+<td>H</td>
+</tr>
+<tr>
+<td>3</td>
+<td>L</td>
+<td>M</td>
+<td>11</td>
+<td>12</td>
+<td>(11 + 12) mod 26 &#x3D; 23</td>
+<td>23</td>
+<td>X</td>
+</tr>
+<tr>
+<td>4</td>
+<td>L</td>
+<td>I</td>
+<td>11</td>
+<td>8</td>
+<td>(11 + 8) mod 26 &#x3D; 19</td>
+<td>19</td>
+<td>T</td>
+</tr>
+<tr>
+<td>5</td>
+<td>O</td>
+<td>N</td>
+<td>14</td>
+<td>13</td>
+<td>(14 + 13) mod 26 &#x3D; 27 mod 26 &#x3D; 1</td>
+<td>1</td>
+<td>B</td>
+</tr>
+<tr>
+<td>-</td>
+<td><em>(空格)</em></td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td><em>(直接保留空格)</em></td>
+<td>-</td>
+<td><em>(空格)</em></td>
+</tr>
+<tr>
+<td>6</td>
+<td>W</td>
+<td>A</td>
+<td>22</td>
+<td>0</td>
+<td>(22 + 0) mod 26 &#x3D; 22</td>
+<td>22</td>
+<td>W</td>
+</tr>
+<tr>
+<td>7</td>
+<td>O</td>
+<td>D</td>
+<td>14</td>
+<td>3</td>
+<td>(14 + 3) mod 26 &#x3D; 17</td>
+<td>17</td>
+<td>R</td>
+</tr>
+<tr>
+<td>8</td>
+<td>R</td>
+<td>M</td>
+<td>17</td>
+<td>12</td>
+<td>(17 + 12) mod 26 &#x3D; 29 mod 26 &#x3D; 3</td>
+<td>3</td>
+<td>D</td>
+</tr>
+<tr>
+<td>9</td>
+<td>L</td>
+<td>I</td>
+<td>11</td>
+<td>8</td>
+<td>(11 + 8) mod 26 &#x3D; 19</td>
+<td>19</td>
+<td>T</td>
+</tr>
+<tr>
+<td>10</td>
+<td>D</td>
+<td>N</td>
+<td>3</td>
+<td>13</td>
+<td>(3 + 13) mod 26 &#x3D; 16</td>
+<td>16</td>
+<td>Q</td>
+</tr>
+</tbody></table>
+<p>最终的结果得到<strong>HHXTB WRDTQ</strong></p>
+<h3 id="博福特密码"><a href="#博福特密码" class="headerlink" title="博福特密码"></a>博福特密码</h3><p>在基于维吉尼亚密码的基础上将密钥和明文的位置交换即：</p>
+<ul>
+<li><strong>加密</strong>：密文 &#x3D; (密钥 - 明文) mod 26</li>
+<li><strong>解密</strong>：明文 &#x3D; (密钥 - 密文) mod 26</li>
+</ul>
+<p>通过这样的方式，简单机器不需要学习两套运算系统（加法和减法就可以实现）</p>
+<h3 id="自动密钥密码"><a href="#自动密钥密码" class="headerlink" title="自动密钥密码"></a>自动密钥密码</h3><p>自动密钥密码的生成规则是</p>
+<p>完整密钥&#x3D;短初始密钥 + 明文拼接</p>
+<p>截取和明文等长作为加密密钥</p>
+<p>再用完整密钥用类似维吉尼亚密码的方式对明文进行加密</p>
+<h4 id="设定"><a href="#设定" class="headerlink" title="设定"></a>设定</h4><p>初始密钥：<code>MAP</code>（长度 3）</p>
+<p>明文：<code>SECRET</code>（共 6 个字母）</p>
+<h4 id="步骤-1：转数字"><a href="#步骤-1：转数字" class="headerlink" title="步骤 1：转数字"></a>步骤 1：转数字</h4><p>明文 P：S E C R E T</p>
+<p>对应数值：18,4,2,17,4,19</p>
+<p>初始密钥 K₀：M A P</p>
+<p>对应数值：12,0,15</p>
+<h4 id="步骤-2：生成完整密钥串"><a href="#步骤-2：生成完整密钥串" class="headerlink" title="步骤 2：生成完整密钥串"></a>步骤 2：生成完整密钥串</h4><p>密钥构造 &#x3D; 初始密钥 + 明文</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">MAP` + `SECRET` = `MAPSECRET</span><br></pre></td></tr></table></figure>
+
+<p>明文一共 6 位，取前 6 位作为加密密钥：<code>M A P S E C</code></p>
+<p>密钥数值：12,0,15,18,4,2</p>
+<h4 id="步骤-3：逐位相加模-26-计算密文"><a href="#步骤-3：逐位相加模-26-计算密文" class="headerlink" title="步骤 3：逐位相加模 26 计算密文"></a>步骤 3：逐位相加模 26 计算密文</h4><ol>
+<li>S(18)+M(12) &#x3D; 30 mod26 &#x3D; 4 → E</li>
+<li>E(4)+A(0) &#x3D; 4 → E</li>
+<li>C(2)+P(15) &#x3D; 17 → R</li>
+<li>R(17)+S(18) &#x3D; 35 mod26 &#x3D; 9 → J</li>
+<li>E(4)+E(4) &#x3D; 8 → I</li>
+<li>T(19)+C(2) &#x3D; 21 → V</li>
+</ol>
+<h4 id="加密结果"><a href="#加密结果" class="headerlink" title="加密结果"></a>加密结果</h4><p>密文：<code>EERJIV</code></p>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>John Doe</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://cai-cai-jun.github.io/2026/07/15/%E5%8F%A4%E5%85%B8%E5%AF%86%E7%A0%81%E5%AD%A6/">https://cai-cai-jun.github.io/2026/07/15/%E5%8F%A4%E5%85%B8%E5%AF%86%E7%A0%81%E5%AD%A6/</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2026/07/12/sqlilabs%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">sql注入从入门到入坟（part1）（sqlilabs 1-22）</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© John Doe | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+
+</html>

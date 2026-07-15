@@ -308,7 +308,13 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">select group_concat(table_name) from information_schema.tables where table_schema=database()</span><br><span class="line">//从所有数据表中找到数据名和当前网站访问的数据库相同的数据库，找到里面所有的表名</span><br><span class="line"></span><br><span class="line">select group_concat(column_name) from information_schema.columns where table_name=[从上面找到的可疑的表名] and table_schema=database()</span><br><span class="line">//从所有列表中找到所属表名和[可疑的表名]相同的且也属于该数据库的所有列名</span><br><span class="line"></span><br><span class="line">select [从上面找到的可疑列名] from [从上面找到的可疑的表名]</span><br><span class="line">//输出这张表中的所有[可疑列名]列里的数据</span><br></pre></td></tr></table></figure>
 
 <p>这样我们就完成了基础数据库里的脱库的操作</p>
-<h2 id="报错注入"><a href="#报错注入" class="headerlink" title="报错注入"></a>报错注入</h2><h2 id="文件读写注入"><a href="#文件读写注入" class="headerlink" title="文件读写注入"></a>文件读写注入</h2><h2 id="布尔盲注"><a href="#布尔盲注" class="headerlink" title="布尔盲注"></a>布尔盲注</h2><h2 id="时间盲注"><a href="#时间盲注" class="headerlink" title="时间盲注"></a>时间盲注</h2>
+<h2 id="报错注入"><a href="#报错注入" class="headerlink" title="报错注入"></a>报错注入</h2><p>当页面没有回显，但是会显示报错信息的时候我们就需要使用到报错注入。</p>
+<p>首先了解一下我们需要用到的函数</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">extractvalue（xxx，xxx）</span><br><span class="line">updatexml（xxx，xxx，xxx）</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="文件读写注入"><a href="#文件读写注入" class="headerlink" title="文件读写注入"></a>文件读写注入</h2><h2 id="布尔盲注"><a href="#布尔盲注" class="headerlink" title="布尔盲注"></a>布尔盲注</h2><h2 id="时间盲注"><a href="#时间盲注" class="headerlink" title="时间盲注"></a>时间盲注</h2>
         </div>
 
         
@@ -362,6 +368,8 @@
             </div>
         </section>
         <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/2026/07/15/%E5%8F%A4%E5%85%B8%E5%AF%86%E7%A0%81%E5%AD%A6/"></a>
             
             
             <a class="next" rel="next" href="/2026/07/11/hello-world/">Hello World</a>
